@@ -1,4 +1,4 @@
-const merge = require('webpack-merge');
+const { merge } = require('webpack-merge');
 const path = require('path');
 const webpackCommon = require('./../../../.webpack/webpack.base.js');
 const pkg = require('./../package.json');
@@ -35,6 +35,18 @@ module.exports = (env, argv) => {
     },
     externals: [
       {
+        'cornerstone-core': {
+          commonjs: 'cornerstone-core',
+          commonjs2: 'cornerstone-core',
+          amd: 'cornerstone-core',
+          root: 'cornerstone',
+        },
+        'cornerstone-tools': {
+          commonjs: 'cornerstone-tools',
+          commonjs2: 'cornerstone-tools',
+          amd: 'cornerstone-tools',
+          root: 'cornerstoneTools',
+        },
         'cornerstone-math': {
           commonjs: 'cornerstone-math',
           commonjs2: 'cornerstone-math',

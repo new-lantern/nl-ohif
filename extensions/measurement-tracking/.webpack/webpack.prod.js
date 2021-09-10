@@ -1,7 +1,7 @@
 const webpack = require('webpack');
-const merge = require('webpack-merge');
+const { merge } = require('webpack-merge');
 const path = require('path');
-const webpackCommon = require('./../../../.webpack/webpack.commonjs.js');
+const webpackCommon = require('./../../../.webpack/webpack.base.js');
 const pkg = require('./../package.json');
 
 const ROOT_DIR = path.join(__dirname, './..');
@@ -40,5 +40,30 @@ module.exports = (env, argv) => {
         maxChunks: 1,
       }),
     ],
+    externals: {
+      react: 'react',
+      'react-dom': 'react-dom',
+      'cornerstone-core': {
+        commonjs: 'cornerstone-core',
+        commonjs2: 'cornerstone-core',
+        amd: 'cornerstone-core',
+        root: 'cornerstone',
+      },
+      'cornerstone-tools': {
+        commonjs: 'cornerstone-tools',
+        commonjs2: 'cornerstone-tools',
+        amd: 'cornerstone-tools',
+        root: 'cornerstoneTools',
+      },
+      'cornerstone-math': {
+        commonjs: 'cornerstone-math',
+        commonjs2: 'cornerstone-math',
+        amd: 'cornerstone-math',
+        root: 'cornerstoneMath',
+      },
+      '@ohif/ui': '@nl/ohif-ui',
+      '@ohif/core': '@nl/ohif-core',
+      '@hooks': '@hooks',
+    },
   });
 };
