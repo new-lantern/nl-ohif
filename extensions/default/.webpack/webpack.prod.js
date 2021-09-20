@@ -63,9 +63,9 @@ module.exports = (env, argv) => {
         amd: 'cornerstone-math',
         root: 'cornerstoneMath',
       },
-      '@ohif/core': '@nl/ohif-core',
-      '@ohif/ui': '@nl/ohif-ui',
-      '@ohif/i18n': '@nl/ohif-i18n',
+      '@ohif/core': '@wen620/ohif-core',
+      '@ohif/ui': '@wen620/ohif-ui',
+      '@ohif/i18n': '@wen620/ohif-i18n',
       '@state': '@state',
     },
   });
