@@ -32,9 +32,6 @@ const initSeriesLinking = ({ servicesManager, commandsManager }) => {
         const targetImage = targetElement.image;
 
         if (!sourceImage || !targetImage) {
-          console.warn(
-            'Could not render reference lines, one or more images not defined.'
-          );
           return;
         }
 
@@ -46,7 +43,7 @@ const initSeriesLinking = ({ servicesManager, commandsManager }) => {
           'imagePlaneModule',
           targetImage.imageId
         );
-        // Make sure the target and reference actually have image plane metadata
+        // Make sure the source and target actually have image plane metadata
         if (
           !sourceImagePlane ||
           !targetImagePlane ||
@@ -57,9 +54,6 @@ const initSeriesLinking = ({ servicesManager, commandsManager }) => {
           !targetImagePlane.columnCosines ||
           !targetImagePlane.imagePositionPatient
         ) {
-          console.warn(
-            'Could not render reference lines, image plane modules not defined.'
-          );
           return;
         }
 
