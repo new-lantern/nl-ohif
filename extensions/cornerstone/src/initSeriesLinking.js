@@ -57,12 +57,12 @@ const initSeriesLinking = ({ servicesManager, commandsManager }) => {
           return;
         }
 
-        if (
-          sourceImagePlane.frameOfReferenceUID !==
-          targetImagePlane.frameOfReferenceUID
-        ) {
-          return;
-        }
+        // if (
+        //   sourceImagePlane.frameOfReferenceUID !==
+        //   targetImagePlane.frameOfReferenceUID
+        // ) {
+        //   return;
+        // }
 
         sourceImagePlane.rowCosines = convertToVector3(
           sourceImagePlane.rowCosines
