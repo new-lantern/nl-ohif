@@ -28,7 +28,7 @@ export default function(configuration = {}) {
   // Set the tool font and font size
   // context.font = "[style] [variant] [weight] [size]/[line height] [font family]";
   const fontFamily =
-    'Roboto, OpenSans, HelveticaNeue-Light, Helvetica Neue Light, Helvetica Neue, Helvetica, Arial, Lucida Grande, sans-serif';
+    'Roboto';
   cornerstoneTools.textStyle.setFont(`16px ${fontFamily}`);
 
   // Tool styles/colors

@@ -15,17 +15,65 @@ export default function getToolbarModule({ commandsManager, servicesManager }) {
     {
       name: 'ohif.action',
       defaultComponent: ToolbarButton,
-      clickHandler: () => {},
+      clickHandler: (evt, clickedBtn, btnSectionName) => {
+        const { props } = clickedBtn;
+        const allButtons = toolbarService.getButtons();
+        const thisButton = allButtons[clickedBtn.id];
+
+        // Set our clicked button to active
+        thisButton.props.isActive = !thisButton.props.isActive;
+
+        // Run button logic/command
+        commandsManager.runCommand(props.commandName, props.commandOptions);
+
+        // What if just toggled "content"?
+        // commandName OR content?
+
+        // Set buttons & trigger notification
+        toolbarService.setButtons(allButtons);
+      },
     },
     {
       name: 'ohif.radioGroup',
       defaultComponent: ToolbarButton,
-      clickHandler: () => {},
+      clickHandler: (evt, clickedBtn, btnSectionName) => {
+        const { props } = clickedBtn;
+        const allButtons = toolbarService.getButtons();
+        const thisButton = allButtons[clickedBtn.id];
+
+        // Set our clicked button to active
+        thisButton.props.isActive = !thisButton.props.isActive;
+
+        // Run button logic/command
+        commandsManager.runCommand(props.commandName, props.commandOptions);
+
+        // What if just toggled "content"?
+        // commandName OR content?
+
+        // Set buttons & trigger notification
+        toolbarService.setButtons(allButtons);
+      },
     },
     {
       name: 'ohif.splitButton',
       defaultComponent: ToolbarSplitButton,
-      clickHandler: () => {},
+      clickHandler: (evt, clickedBtn, btnSectionName) => {
+        const { props } = clickedBtn;
+        const allButtons = toolbarService.getButtons();
+        const thisButton = allButtons[clickedBtn.id];
+
+        // Set our clicked button to active
+        thisButton.props.isActive = !thisButton.props.isActive;
+
+        // Run button logic/command
+        commandsManager.runCommand(props.commandName, props.commandOptions);
+
+        // What if just toggled "content"?
+        // commandName OR content?
+
+        // Set buttons & trigger notification
+        toolbarService.setButtons(allButtons);
+      },
     },
     {
       name: 'ohif.layoutSelector',
