@@ -76,22 +76,24 @@ export class HotkeysManager {
     }
   }
 
-  async getHotkeys() {
+  async setupHotkeys() {
     try {
       const hotKeysResponse = await nlApi.get("/api/hotkeys/$self/");
-      if(hotKeysResponse.status !== 200){
+      if (hotKeysResponse.status !== 200) {
         throw new Error(
           'Unable to get hotkeys'
         );
       }
-      return hotKeysResponse.data
-    } catch (error) {
-      const { UINotificationService } = this._servicesManager.services;
-      UINotificationService.show({
-        title: 'Hotkeys Manager',
-        message: 'Error while getting hotkeys',
-        type: 'error',
-      });
+      this.setHotkeys(hotKeysResponse.data.hotkeys.hotkeyDefinitions);
+    } catch(error) {
+      if (error.response.status != 404) {
+        const { UINotificationService } = this._servicesManager.services;
+        UINotificationService.show({
+          title: 'Hotkeys Manager',
+          message: 'Error while getting hotkeys',
+          type: 'error',
+        });
+      }
     }
   }
 
@@ -102,7 +104,7 @@ export class HotkeysManager {
           hotkeyDefinitions,
         }},
       );
-      if(hotKeysResponse.status !== 200){
+      if(hotKeysResponse.status !== 200 && hotKeysResponse.status !== 201){
         throw new Error(
           'Unable to save hotkeys'
         );
