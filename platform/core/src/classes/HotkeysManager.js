@@ -14,7 +14,6 @@ import measurementTools from '../../../../extensions/cornerstone/src/utils/measu
  * @property {String[]} keys - Keys to bind; Follows Mousetrap.js binding syntax
  */
 
-
 export class HotkeysManager {
   constructor(commandsManager, servicesManager) {
     this.hotkeyDefinitions = {};
@@ -78,14 +77,12 @@ export class HotkeysManager {
 
   async setupHotkeys() {
     try {
-      const hotKeysResponse = await nlApi.get("/api/hotkeys/$self/");
+      const hotKeysResponse = await nlApi.get('/api/hotkeys/$self/');
       if (hotKeysResponse.status !== 200) {
-        throw new Error(
-          'Unable to get hotkeys'
-        );
+        throw new Error('Unable to get hotkeys');
       }
       this.setHotkeys(hotKeysResponse.data.hotkeys.hotkeyDefinitions);
-    } catch(error) {
+    } catch (error) {
       if (error.response.status !== 404) {
         const { UINotificationService } = this._servicesManager.services;
         UINotificationService.show({
@@ -99,15 +96,13 @@ export class HotkeysManager {
 
   async saveHotkeys(hotkeyDefinitions = []) {
     try {
-      const hotKeysResponse = await nlApi.put("/api/hotkeys/$self/",
-        {hotkeys: {
+      const hotKeysResponse = await nlApi.put('/api/hotkeys/$self/', {
+        hotkeys: {
           hotkeyDefinitions,
-        }},
-      );
-      if(hotKeysResponse.status !== 200 && hotKeysResponse.status !== 201){
-        throw new Error(
-          'Unable to save hotkeys'
-        );
+        },
+      });
+      if (hotKeysResponse.status !== 200 && hotKeysResponse.status !== 201) {
+        throw new Error('Unable to save hotkeys');
       }
     } catch (error) {
       const { UINotificationService } = this._servicesManager.services;
