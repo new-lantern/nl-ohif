@@ -86,7 +86,7 @@ export class HotkeysManager {
       }
       this.setHotkeys(hotKeysResponse.data.hotkeys.hotkeyDefinitions);
     } catch(error) {
-      if (error.response.status != 404) {
+      if (error.response.status !== 404) {
         const { UINotificationService } = this._servicesManager.services;
         UINotificationService.show({
           title: 'Hotkeys Manager',
