@@ -144,7 +144,10 @@ const SplitButton = ({
       // info to fire item's command/event?
       //
       commandName: state.primary.commandName,
-      commandOptions: state.primary.commandOptions,
+      commandOptions: {
+        ...state.primary.commandOptions,
+        isActive: isPrimaryActive,
+      },
     });
   };
 

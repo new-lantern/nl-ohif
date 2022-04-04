@@ -147,12 +147,16 @@ const commandsModule = ({ servicesManager, commandsManager }) => {
       const { isSeriesLinkingEnabled } = ViewerToolsetService.getState();
       ViewerToolsetService.setIsSeriesLinkingEnabled(!isSeriesLinkingEnabled);
     },
-    activateCrosshairs: () => {
+    activateCrosshairs: ({ isActive }) => {
       commandsManager.runCommand('toggleSynchronizer', { toggledState: true });
-      cornerstoneTools.setToolActive('NLCrosshairs', {
-        mouseButtonMask: 1,
-        synchronizationContext: updateImageSynchronizer,
-      });
+      if (!isActive) {
+        cornerstoneTools.setToolActive('NLCrosshairs', {
+          mouseButtonMask: 1,
+          synchronizationContext: updateImageSynchronizer,
+        });
+      } else {
+        cornerstoneTools.setToolDisabled('NLCrosshairs');
+      }
     },
     invertViewport: ({ element }) => {
       let enabledElement;
@@ -184,7 +188,7 @@ const commandsModule = ({ servicesManager, commandsManager }) => {
     },
     // TODO: this is receiving `evt` from `ToolbarRow`. We could use it to have
     //       better mouseButtonMask sets.
-    setToolActive: ({ toolName }) => {
+    setToolActive: ({ toolName, disabled }) => {
       if (!toolName) {
         console.warn('No toolname provided to setToolActive command');
       }
@@ -206,17 +210,23 @@ const commandsModule = ({ servicesManager, commandsManager }) => {
           viewportInfo.context === 'ACTIVE_VIEWPORT::CORNERSTONE';
 
         if (hasCornerstoneContext) {
-          cornerstoneTools.setToolActiveForElement(
-            viewportInfo.element,
-            toolName,
-            { mouseButtonMask: 1 }
-          );
+          if (!disabled) {
+            cornerstoneTools.setToolActiveForElement(
+              viewportInfo.element,
+              toolName,
+              { mouseButtonMask: 1 }
+            );
+          } else {
+            cornerstoneTools.setToolDisabled(toolName);
+            viewportInfo.element.style.cursor = 'initial';
+          }
         } else {
           commandsManager.runCommand(
             'setToolActive',
             {
               element: viewportInfo.element,
               toolName,
+              disabled,
             },
             viewportInfo.context
           );

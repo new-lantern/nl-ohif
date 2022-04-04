@@ -57,17 +57,27 @@ export default class ToolBarService {
    */
   recordInteraction(interaction) {
     const commandsManager = this._commandsManager;
-    const { groupId, itemId, interactionType, commandName, commandOptions } = interaction;
+    const {
+      groupId,
+      itemId,
+      interactionType,
+      commandName,
+      commandOptions,
+    } = interaction;
 
     switch (interactionType) {
       case 'action': {
         break;
       }
       case 'tool': {
-        this.state.primaryToolId = itemId;
+        this.state.primaryToolId =
+          commandOptions && commandOptions.isActive ? null : itemId;
         // TODO: Force run this for all contexts? Even inactive?
         // or... They'll just detect primaryToolId when they spin up and apply...
-        commandsManager.runCommand('setToolActive', commandOptions);
+        commandsManager.runCommand('setToolActive', {
+          ...commandOptions,
+          disabled: commandOptions && commandOptions.isActive === true,
+        });
         break;
       }
       case 'toggle': {

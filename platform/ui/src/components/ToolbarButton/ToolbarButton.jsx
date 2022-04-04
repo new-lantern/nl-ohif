@@ -50,7 +50,7 @@ const ToolbarButton = ({
               itemId: id,
               interactionType: type,
               commandName: commandName,
-              commandOptions: commandOptions,
+              commandOptions: { ...commandOptions, isActive },
             });
           }}
           name={label}

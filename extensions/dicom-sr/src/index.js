@@ -64,7 +64,7 @@ export default {
     return {
       definitions: {
         setToolActive: {
-          commandFn: ({ toolName, element }) => {
+          commandFn: ({ toolName, element, disabled }) => {
             if (!toolName) {
               console.warn('No toolname provided to setToolActive command');
             }
@@ -72,9 +72,14 @@ export default {
             // Set same tool or alt tool
             const toolAlias = _getToolAlias(toolName);
 
-            cornerstoneTools.setToolActiveForElement(element, toolAlias, {
-              mouseButtonMask: 1,
-            });
+            if (!disabled) {
+              cornerstoneTools.setToolActiveForElement(element, toolAlias, {
+                mouseButtonMask: 1,
+              });
+            } else {
+              cornerstoneTools.setToolDisabled(toolAlias);
+              element.style.cursor = 'initial';
+            }
           },
           storeContexts: [],
           options: {},
