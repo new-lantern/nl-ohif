@@ -8,14 +8,13 @@ import {
   UserPreferences,
   Header,
   useModal,
+  useViewportGrid,
 } from '@ohif/ui';
 
 import i18n from '@ohif/i18n';
 import { hotkeys } from '@ohif/core';
 
 import { useAppConfig } from '@state';
-
-import { getEnabledElement } from '../../../../extensions/cornerstone/src/state';
 
 const { availableLanguages, defaultLanguage, currentLanguage } = i18n;
 
@@ -101,6 +100,7 @@ function ViewerLayout({
   hotkeysManager.setupHotkeys();
 
   const [appConfig] = useAppConfig();
+  const [{ activeViewportIndex }] = useViewportGrid();
 
   const onClickSettingButton = () => {
     show({
@@ -132,15 +132,13 @@ function ViewerLayout({
   };
 
   const onClickClipboardButton = () => {
-    const {
-      ViewportGridService,
-      ViewerToolsetService,
-    } = servicesManager.services;
-    console.log(ViewportGridService.getState());
-    const { activeViewportIndex } = ViewportGridService.getState();
-    console.log(getEnabledElement(activeViewportIndex).element.innerHTML);
-
-    // Wen magic goes here
+    if (activeViewportIndex >= 0) {
+      const enabledElements = cornerstone.getEnabledElements();
+      const enabledElement = enabledElements[activeViewportIndex];
+      const imageId = enabledElement.image.imageId;
+      const instance = cornerstone.metaData.get('instance', imageId);
+      console.log(instance.SeriesNumber, instance.InstanceNumber);
+    }
   };
 
   const { t } = useTranslation();
