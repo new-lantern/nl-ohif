@@ -1,3 +1,4 @@
+import cornerstone from 'cornerstone-core';
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
@@ -12,10 +13,11 @@ import {
 import i18n from '@ohif/i18n';
 import { hotkeys } from '@ohif/core';
 
-const { availableLanguages, defaultLanguage, currentLanguage } = i18n;
-
 import { useAppConfig } from '@state';
 
+import { getEnabledElement } from '../../../../extensions/cornerstone/src/state';
+
+const { availableLanguages, defaultLanguage, currentLanguage } = i18n;
 
 function Toolbar({ servicesManager }) {
   const { ToolBarService } = servicesManager.services;
@@ -96,12 +98,9 @@ function ViewerLayout({
   viewports,
   ViewportGridComp,
 }) {
-
   hotkeysManager.setupHotkeys();
 
   const [appConfig] = useAppConfig();
-
-  const onClickReturnButton = () => {};
 
   const onClickSettingButton = () => {
     show({
@@ -130,6 +129,18 @@ function ViewerLayout({
         hotkeysModule: hotkeys,
       },
     });
+  };
+
+  const onClickClipboardButton = () => {
+    const {
+      ViewportGridService,
+      ViewerToolsetService,
+    } = servicesManager.services;
+    console.log(ViewportGridService.getState());
+    const { activeViewportIndex } = ViewportGridService.getState();
+    console.log(getEnabledElement(activeViewportIndex).element.innerHTML);
+
+    // Wen magic goes here
   };
 
   const { t } = useTranslation();
@@ -184,7 +195,7 @@ function ViewerLayout({
     <div className="flex flex-col overflow-hidden h-full">
       <Header
         onClickSettingButton={onClickSettingButton}
-        onClickReturnButton={onClickReturnButton}
+        onClickClipboardButton={onClickClipboardButton}
         WhiteLabeling={appConfig.whiteLabeling}
       >
         <ErrorBoundary context="Primary Toolbar">

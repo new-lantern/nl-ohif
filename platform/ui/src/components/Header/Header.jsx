@@ -6,9 +6,8 @@ import { NavBar, Svg, Icon, IconButton, Dropdown } from '../';
 
 function Header({
   children,
-  isReturnEnabled,
   onClickSettingButton,
-  onClickReturnButton,
+  onClickClipboardButton,
   isSticky,
   WhiteLabeling,
 }) {
@@ -20,6 +19,12 @@ function Header({
   const onClickSetting = () => {
     if (onClickSettingButton) {
       onClickSettingButton();
+    }
+  };
+
+  const onClickClipboard = () => {
+    if (onClickClipboardButton) {
+      onClickClipboardButton();
     }
   };
 
@@ -41,12 +46,24 @@ function Header({
         <div className="flex items-center">{children}</div>
         <div className="flex items-center">
           <IconButton
+            id={'options-clipboard-icon'}
+            variant="text"
+            color="inherit"
+            size="initial"
+            className="text-primary-active"
+            onClick={onClickClipboard}
+            style={{ padding: 5 }}
+          >
+            <Icon name="clipboard" />
+          </IconButton>
+          <IconButton
             id={'options-settings-icon'}
             variant="text"
             color="inherit"
             size="initial"
             className="text-primary-active"
             onClick={onClickSetting}
+            style={{ padding: 5 }}
           >
             <Icon name="settings" />
           </IconButton>
@@ -58,14 +75,13 @@ function Header({
 
 Header.propTypes = {
   children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
-  isReturnEnabled: PropTypes.bool,
   isSticky: PropTypes.bool,
-  onClickReturnButton: PropTypes.func,
-  WhiteLabeling: PropTypes.element,
+  onClickSettingButton: PropTypes.func,
+  onClickClipboardButton: PropTypes.func,
+  WhiteLabeling: PropTypes.object,
 };
 
 Header.defaultProps = {
-  isReturnEnabled: true,
   isSticky: false,
 };
 
