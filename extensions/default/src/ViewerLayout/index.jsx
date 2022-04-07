@@ -137,7 +137,16 @@ function ViewerLayout({
       const enabledElement = enabledElements[activeViewportIndex];
       const imageId = enabledElement.image.imageId;
       const instance = cornerstone.metaData.get('instance', imageId);
-      console.log(instance.SeriesNumber, instance.InstanceNumber);
+
+      const studyURL = window.location.origin.concat(window.location.pathname);
+      const instanceURL = new URL(studyURL);
+
+      instanceURL.searchParams.append('series_number', instance.SeriesNumber);
+      instanceURL.searchParams.append(
+        'instance_number',
+        instance.InstanceNumber
+      );
+      navigator.clipboard.writeText(instanceURL.href);
     }
   };
 

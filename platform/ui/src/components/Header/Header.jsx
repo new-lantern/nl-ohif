@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
-import { NavBar, Svg, Icon, IconButton, Dropdown } from '../';
+import { NavBar, Svg, Icon, IconButton, Tooltip } from '../';
 
 function Header({
   children,
@@ -45,28 +45,32 @@ function Header({
         </div>
         <div className="flex items-center">{children}</div>
         <div className="flex items-center">
-          <IconButton
-            id={'options-clipboard-icon'}
-            variant="text"
-            color="inherit"
-            size="initial"
-            className="text-primary-active"
-            onClick={onClickClipboard}
-            style={{ padding: 5 }}
-          >
-            <Icon name="clipboard" />
-          </IconButton>
-          <IconButton
-            id={'options-settings-icon'}
-            variant="text"
-            color="inherit"
-            size="initial"
-            className="text-primary-active"
-            onClick={onClickSetting}
-            style={{ padding: 5 }}
-          >
-            <Icon name="settings" />
-          </IconButton>
+          <Tooltip content="Copy Instance Link">
+            <IconButton
+              id={'options-clipboard-icon'}
+              variant="text"
+              color="inherit"
+              size="initial"
+              className="text-primary-active"
+              onClick={onClickClipboard}
+              style={{ padding: 5 }}
+            >
+              <Icon name="clipboard" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip content="Settings">
+            <IconButton
+              id={'options-settings-icon'}
+              variant="text"
+              color="inherit"
+              size="initial"
+              className="text-primary-active"
+              onClick={onClickSetting}
+              style={{ padding: 5 }}
+            >
+              <Icon name="settings" />
+            </IconButton>
+          </Tooltip>
         </div>
       </div>
     </NavBar>
