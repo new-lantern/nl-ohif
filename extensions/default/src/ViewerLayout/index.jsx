@@ -101,6 +101,7 @@ function ViewerLayout({
 
   const [appConfig] = useAppConfig();
   const [{ activeViewportIndex }] = useViewportGrid();
+  const { UINotificationService } = servicesManager.services;
 
   const onClickSettingButton = () => {
     show({
@@ -147,6 +148,17 @@ function ViewerLayout({
         instance.InstanceNumber
       );
       navigator.clipboard.writeText(instanceURL.href);
+
+      const uiMessage =
+        'Series ' +
+        instance.SeriesNumber +
+        ' Image ' +
+        instance.InstanceNumber +
+        ' link copied!';
+      UINotificationService.show({
+        message: uiMessage,
+        type: 'info',
+      });
     }
   };
 
