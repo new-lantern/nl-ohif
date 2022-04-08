@@ -45,7 +45,13 @@ function Header({
         </div>
         <div className="flex items-center">{children}</div>
         <div className="flex items-center">
-          <Tooltip content="Copy Instance Link">
+          <Tooltip
+            content={
+              <div className="text-center max-w-40">
+                Copy Instance <br /> Link
+              </div>
+            }
+          >
             <IconButton
               id={'options-clipboard-icon'}
               variant="text"
