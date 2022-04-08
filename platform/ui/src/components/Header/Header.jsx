@@ -48,7 +48,9 @@ function Header({
           <Tooltip
             content={
               <div className="text-center max-w-40">
-                Copy Instance <br /> Link
+                Copy Active
+                <br />
+                Image Link
               </div>
             }
           >
