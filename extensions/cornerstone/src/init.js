@@ -1,5 +1,6 @@
 import OHIF from '@ohif/core';
 import { ContextMenuMeasurements } from '@ohif/ui';
+import { DicomMetadataStore, utils } from '@ohif/core';
 import cs from 'cornerstone-core';
 import csTools from 'cornerstone-tools';
 import merge from 'lodash.merge';
@@ -12,6 +13,39 @@ import getCornerstoneMeasurementById from './utils/getCornerstoneMeasurementById
 import measurementServiceMappingsFactory from './utils/measurementServiceMappings/measurementServiceMappingsFactory';
 import { setEnabledElement } from './state';
 import callInputDialog from './callInputDialog.js';
+
+const { nlApi } = utils;
+
+const _transformMeasurement = newMeasurement => {
+  const { referenceStudyUID, referenceSeriesUID } = newMeasurement;
+  const study = DicomMetadataStore.getStudy(referenceStudyUID);
+  const series = study.series.find(s => s.uid === referenceSeriesUID);
+  return {
+    study_id: series.study_id,
+    series_id: series.id,
+    uid: newMeasurement.id,
+    frame_of_reference_uid: newMeasurement.FrameOfReferenceUID ?? null,
+    source: {
+      id: newMeasurement.source.id,
+      name: newMeasurement.source.name,
+      version: newMeasurement.source.version,
+    },
+    points: newMeasurement.points,
+    handles: newMeasurement.handles,
+    text: newMeasurement.text ?? null,
+    description: newMeasurement.description ?? null,
+    unit: newMeasurement.unit ?? null,
+    type: newMeasurement.type,
+    label: newMeasurement.label ?? null,
+    shortest_diameter: newMeasurement.shortestDiameter ?? undefined,
+    longest_diameter: newMeasurement.longestDiameter ?? undefined,
+    area: newMeasurement.area ?? undefined,
+    angle: newMeasurement.angle ?? undefined,
+    mean: newMeasurement.mean ?? undefined,
+    std_dev: newMeasurement.stdDev ?? undefined,
+    length: newMeasurement.length ?? undefined,
+  };
+};
 
 // TODO -> Global "context menu open state", or lots of expensive searches on drag?
 
@@ -73,13 +107,15 @@ export default function init({
     DisplaySetService,
     ToolBarService,
     UserAuthenticationService,
+    UINotificationService,
   } = servicesManager.services;
   const tools = getTools();
 
   /* Measurement Service */
   const measurementServiceSource = _connectToolsToMeasurementService(
     MeasurementService,
-    DisplaySetService
+    DisplaySetService,
+    UINotificationService
   );
 
   initReferenceLines({ servicesManager, commandsManager });
@@ -395,7 +431,8 @@ const _initMeasurementService = (MeasurementService, DisplaySetService) => {
 
 const _connectToolsToMeasurementService = (
   MeasurementService,
-  DisplaySetService
+  DisplaySetService,
+  UINotificationService
 ) => {
   const csToolsVer4MeasurementSource = _initMeasurementService(
     MeasurementService,
@@ -419,10 +456,23 @@ const _connectToolsToMeasurementService = (
         const { toolName, toolType, measurementData } = evtDetail;
         const csToolName = toolName || measurementData.toolType || toolType;
 
-        const measurementId = addOrUpdate(csToolName, evtDetail);
+        const measurement = addOrUpdate(csToolName, evtDetail);
 
-        if (measurementId) {
-          measurementData.id = measurementId;
+        if (measurement) {
+          nlApi
+            .post('/api/measurement/', _transformMeasurement(measurement))
+            .then(res =>
+              UINotificationService.show({
+                message: 'New measurement has been stored',
+                type: 'info',
+              })
+            )
+            .catch(err =>
+              UINotificationService.show({
+                message: 'Failed to store the measurement',
+                type: 'error',
+              })
+            );
         }
       } catch (error) {
         console.warn('Failed to add measurement:', error);

@@ -155,6 +155,7 @@ const NLFreehandRoi = {
       stdDev: data.meanStdDev.stdDev,
       type: getValueTypeFromToolType(tool),
       points: measurementData.handles.points,
+      handles: measurementData.handles,
     };
   },
 };

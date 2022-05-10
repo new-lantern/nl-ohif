@@ -65,6 +65,7 @@ const VALUE_TYPES = {
   POINT: 'value_type::point',
   BIDIRECTIONAL: 'value_type::shortAxisLongAxis', // TODO -> Discuss with Danny. => just using SCOORD values isn't enough here.
   ELLIPSE: 'value_type::ellipse',
+  RECTANGLE: 'value_type::rectangle',
   MULTIPOINT: 'value_type::multipoint',
   CIRCLE: 'value_type::circle',
   FREEHAND: 'value_type::freehand',
@@ -486,7 +487,7 @@ class MeasurementService {
       });
     }
 
-    return newMeasurement.id;
+    return newMeasurement;
   }
 
   /**

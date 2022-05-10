@@ -12,12 +12,13 @@ import { useCine, useViewportGrid } from '@ohif/ui';
 
 const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
 
-const { StackManager } = OHIF.utils;
+const { StackManager, nlApi } = OHIF.utils;
+const { DicomMetadataStore } = OHIF;
 
-const getQueryParam = (key) => {
+const getQueryParam = key => {
   const urlParams = new URLSearchParams(window.location.search);
   return Number(urlParams.get(key)) || 0;
-}
+};
 
 function OHIFCornerstoneViewport({
   children,
@@ -96,8 +97,15 @@ function OHIFCornerstoneViewport({
         const instanceNumberParam = getQueryParam('instance_number');
         const seriesNumberParam = getQueryParam('series_number');
 
-        if(!isParamViewLoaded && instanceNumberParam && displaySet.SeriesNumber === seriesNumberParam) {
-          data.stack.initialImageIdIndex = (instanceNumberParam > displaySet.numImageFrames ? displaySet.numImageFrames : instanceNumberParam) - 1;
+        if (
+          !isParamViewLoaded &&
+          instanceNumberParam &&
+          displaySet.SeriesNumber === seriesNumberParam
+        ) {
+          data.stack.initialImageIdIndex =
+            (instanceNumberParam > displaySet.numImageFrames
+              ? displaySet.numImageFrames
+              : instanceNumberParam) - 1;
           setIsParamViewLoaded(true);
         }
 
@@ -129,6 +137,45 @@ function OHIFCornerstoneViewport({
     if (element) {
       onNewImage(element, () => {
         stageChangedRef.current = false;
+
+        const { StudyInstanceUID, SeriesInstanceUID } = displaySet;
+        _getMeasurements(StudyInstanceUID, SeriesInstanceUID).then(
+          _measurements => {
+            const { VALUE_TYPES } = MeasurementService;
+            const VALUE_TYPE_TO_TOOL_TYPE = {
+              [VALUE_TYPES.POLYLINE]: 'Length',
+              [VALUE_TYPES.ELLIPSE]: 'EllipticalRoi',
+              [VALUE_TYPES.BIDIRECTIONAL]: 'Bidirectional',
+              [VALUE_TYPES.POINT]: 'ArrowAnnotate',
+              [VALUE_TYPES.FREEHAND]: 'NLFreehandRoi',
+              [VALUE_TYPES.RECTANGLE]: 'RectangleRoi',
+              [VALUE_TYPES.ANGLE]: 'Angle',
+            };
+            if (_measurements.length > 0) {
+              const { name, version } = _measurements[0].source;
+              const source = MeasurementService.getSource(name, version);
+              if (source) {
+                const { addOrUpdate } = source;
+                _measurements.forEach(m => {
+                  const toolType = VALUE_TYPE_TO_TOOL_TYPE[m.type];
+                  const measurementData = _toMeasurementData(m, toolType);
+                  cornerstoneTools.addToolState(
+                    element,
+                    toolType,
+                    measurementData
+                  );
+                  addOrUpdate(toolType, {
+                    element,
+                    toolName: toolType,
+                    toolType,
+                    measurementData,
+                    id: m.uid,
+                  });
+                });
+              }
+            }
+          }
+        );
       });
     }
 
@@ -254,6 +301,64 @@ async function _getViewportData(dataSource, displaySet) {
   };
 
   return viewportData;
+}
+
+const _toMeasurementData = (measurement, toolType) => {
+  if (toolType === 'RectangleRoi' || toolType === 'EllipticalRoi') {
+    return {
+      handles: measurement.handles,
+      cachedStats: {
+        area: measurement.area,
+        mean: measurement.mean,
+        stdDev: measurement.std_dev,
+      },
+      unit: measurement.unit,
+    };
+  } else if (toolType === 'Angle') {
+    return {
+      handles: measurement.handles,
+      rAngle: measurement.angle,
+    };
+  } else if (toolType === 'NLFreehandRoi') {
+    return {
+      handles: measurement.handles,
+      meanStdDev: {
+        mean: measurement.mean,
+        stdDev: measurement.stdDev,
+      },
+      area: measurement.area,
+      unit: measurement.unit,
+    };
+  } else if (toolType === 'Bidirectional') {
+    return {
+      handles: measurement.handles,
+      longestDiameter: measurement.longest_diameter,
+      shortestDiameter: measurement.shortest_diameter,
+    };
+  } else if (toolType === 'ArrowAnnotate') {
+    return {
+      handles: measurement.handles,
+      text: measurement.text || measurement.label,
+    };
+  } else if (toolType === 'Length') {
+    return {
+      handles: measurement.handles,
+      length: measurement.length,
+      unit: measurement.unit,
+    };
+  }
+};
+
+async function _getMeasurements(StudyInstanceUID, SeriesInstanceUID) {
+  const study = DicomMetadataStore.getStudy(StudyInstanceUID);
+  const series = study.series.find(s => s.uid === SeriesInstanceUID);
+  const response = await nlApi.get('/api/measurement/', {
+    params: {
+      study_id: series.study_id,
+      series_id: series.id,
+    },
+  });
+  return response.data.results;
 }
 
 function _subscribeToJumpToMeasurementEvents(
