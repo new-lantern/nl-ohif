@@ -406,7 +406,7 @@ class MeasurementService {
   }
 
   /**
-   * Adds or update persisted measurements.
+   * Adds or update measurements.
    *
    * @param {MeasurementSource} source The measurement source instance
    * @param {string} definition The source definition
@@ -442,6 +442,15 @@ class MeasurementService {
 
       /* Assign measurement source instance */
       measurement.source = source;
+
+      const { instance } = sourceMeasurement;
+      if (instance) {
+        measurement.SOPInstanceUID = instance.SOPInstanceUID;
+        measurement.FrameOfReferenceUID = instance.FrameOfReferenceUID;
+        measurement.referenceSeriesUID = instance.SeriesInstanceUID;
+        measurement.referenceStudyUID = instance.StudyInstanceUID;
+        measurement.displaySetInstanceUID = instance.displaySetInstanceUID;
+      }
     } catch (error) {
       throw new Error(
         `Failed to map '${sourceInfo}' measurement for definition ${definition}:`,
@@ -487,7 +496,7 @@ class MeasurementService {
       });
     }
 
-    return newMeasurement;
+    return newMeasurement.id;
   }
 
   /**

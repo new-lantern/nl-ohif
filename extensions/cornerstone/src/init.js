@@ -4,6 +4,7 @@ import { DicomMetadataStore, utils } from '@ohif/core';
 import cs from 'cornerstone-core';
 import csTools from 'cornerstone-tools';
 import merge from 'lodash.merge';
+import debounce from 'lodash.debounce';
 import getTools, { toolsGroupedByType } from './utils/getTools.js';
 import initCornerstoneTools from './initCornerstoneTools.js';
 import initReferenceLines from './initReferenceLines';
@@ -14,21 +15,23 @@ import measurementServiceMappingsFactory from './utils/measurementServiceMapping
 import { setEnabledElement } from './state';
 import callInputDialog from './callInputDialog.js';
 
-const { nlApi } = utils;
+const { nlApi, guid } = utils;
 
-const _transformMeasurement = newMeasurement => {
+const _transformMeasurement = (newMeasurement, source) => {
   const { referenceStudyUID, referenceSeriesUID } = newMeasurement;
   const study = DicomMetadataStore.getStudy(referenceStudyUID);
   const series = study.series.find(s => s.uid === referenceSeriesUID);
   return {
     study_id: series.study_id,
     series_id: series.id,
-    uid: newMeasurement.id,
+    uid: guid(),
     frame_of_reference_uid: newMeasurement.FrameOfReferenceUID ?? null,
+    sop_instance_uid: newMeasurement.SOPInstanceUID ?? null,
+    reference_series_uid: referenceSeriesUID ?? null,
+    reference_study_uid: referenceStudyUID ?? null,
     source: {
-      id: newMeasurement.source.id,
-      name: newMeasurement.source.name,
-      version: newMeasurement.source.version,
+      name: source.name,
+      version: source.version,
     },
     points: newMeasurement.points,
     handles: newMeasurement.handles,
@@ -168,6 +171,20 @@ export default function init({
           // Sync'd w/ Measurement Service
           if (measurementData.id) {
             measurementServiceSource.remove(measurementData.id);
+            nlApi
+              .delete(`/api/measurement/${measurementData.id}`)
+              .then(() => {
+                UINotificationService.show({
+                  message: 'The measurement has been deleted',
+                  type: 'info',
+                });
+              })
+              .catch(err =>
+                UINotificationService.show({
+                  message: 'Failed to delete the measurement',
+                  type: 'error',
+                })
+              );
           }
           // Only in cstools
           else {
@@ -443,6 +460,8 @@ const _connectToolsToMeasurementService = (
     csToolsVer4MeasurementSource
   );
   const { addOrUpdate, remove } = csToolsVer4MeasurementSource;
+  const sourceMappings =
+    MeasurementService.mappings[csToolsVer4MeasurementSource.id];
   const elementEnabledEvt = cs.EVENTS.ELEMENT_ENABLED;
 
   /* Measurement Service Events */
@@ -456,30 +475,38 @@ const _connectToolsToMeasurementService = (
         const { toolName, toolType, measurementData } = evtDetail;
         const csToolName = toolName || measurementData.toolType || toolType;
 
-        const measurement = addOrUpdate(csToolName, evtDetail);
-
-        if (measurement) {
-          nlApi
-            .post('/api/measurement/', _transformMeasurement(measurement))
-            .then(res =>
-              UINotificationService.show({
-                message: 'New measurement has been stored',
-                type: 'info',
-              })
-            )
-            .catch(err =>
-              UINotificationService.show({
-                message: 'Failed to store the measurement',
-                type: 'error',
-              })
-            );
-        }
+        const { toMeasurementSchema } = sourceMappings.find(
+          mapping => mapping.definition === csToolName
+        );
+        const measurement = toMeasurementSchema(evtDetail);
+        nlApi
+          .post(
+            '/api/measurement/',
+            _transformMeasurement(measurement, csToolsVer4MeasurementSource)
+          )
+          .then(({ data }) => {
+            UINotificationService.show({
+              message: 'New measurement has been stored',
+              type: 'info',
+            });
+            const { id } = data;
+            const measurementId = addOrUpdate(csToolName, { ...evtDetail, id });
+            if (measurementId) {
+              measurementData.id = measurementId;
+            }
+          })
+          .catch(err =>
+            UINotificationService.show({
+              message: 'Failed to store the measurement',
+              type: 'error',
+            })
+          );
       } catch (error) {
         console.warn('Failed to add measurement:', error);
       }
     }
 
-    function updateMeasurement(csToolsEvent) {
+    const updateMeasurement = debounce(function(csToolsEvent) {
       try {
         if (!csToolsEvent.detail.measurementData.id) {
           return;
@@ -490,11 +517,32 @@ const _connectToolsToMeasurementService = (
         const csToolName = toolName || measurementData.toolType || toolType;
 
         evtDetail.id = csToolsEvent.detail.measurementData.id;
-        addOrUpdate(csToolName, evtDetail);
+        const { toMeasurementSchema } = sourceMappings.find(
+          mapping => mapping.definition === csToolName
+        );
+        const measurement = toMeasurementSchema(evtDetail);
+        nlApi
+          .put(
+            `/api/measurement/${evtDetail.id}/`,
+            _transformMeasurement(measurement, csToolsVer4MeasurementSource)
+          )
+          .then(({ data }) => {
+            UINotificationService.show({
+              message: 'The measurement has been updated',
+              type: 'info',
+            });
+            addOrUpdate(csToolName, evtDetail);
+          })
+          .catch(err =>
+            UINotificationService.show({
+              message: 'Failed to store the measurement',
+              type: 'error',
+            })
+          );
       } catch (error) {
         console.warn('Failed to update measurement:', error);
       }
-    }
+    }, 250);
 
     /**
      * When csTools fires a removed event, remove the same measurement
@@ -507,6 +555,21 @@ const _connectToolsToMeasurementService = (
       try {
         if (csToolsEvent.detail.measurementData.id) {
           remove(csToolsEvent.detail.measurementData.id);
+          const id = csToolsEvent.detail.measurementData.id;
+          nlApi
+            .delete(`/api/measurement/${id}`)
+            .then(() => {
+              UINotificationService.show({
+                message: 'The measurement has been deleted',
+                type: 'info',
+              });
+            })
+            .catch(err =>
+              UINotificationService.show({
+                message: 'Failed to delete the measurement',
+                type: 'error',
+              })
+            );
         }
       } catch (error) {
         console.warn('Failed to remove measurement:', error);

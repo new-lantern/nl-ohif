@@ -139,8 +139,10 @@ function OHIFCornerstoneViewport({
         stageChangedRef.current = false;
 
         const { StudyInstanceUID, SeriesInstanceUID } = displaySet;
-        _getMeasurements(StudyInstanceUID, SeriesInstanceUID).then(
-          _measurements => {
+        const study = DicomMetadataStore.getStudy(StudyInstanceUID);
+        nlApi
+          .get('/api/measurement/', { params: { study_id: study.id } })
+          .then(({ data }) => {
             const { VALUE_TYPES } = MeasurementService;
             const VALUE_TYPE_TO_TOOL_TYPE = {
               [VALUE_TYPES.POLYLINE]: 'Length',
@@ -151,6 +153,7 @@ function OHIFCornerstoneViewport({
               [VALUE_TYPES.RECTANGLE]: 'RectangleRoi',
               [VALUE_TYPES.ANGLE]: 'Angle',
             };
+            const { results: _measurements } = data;
             if (_measurements.length > 0) {
               const { name, version } = _measurements[0].source;
               const source = MeasurementService.getSource(name, version);
@@ -159,23 +162,41 @@ function OHIFCornerstoneViewport({
                 _measurements.forEach(m => {
                   const toolType = VALUE_TYPE_TO_TOOL_TYPE[m.type];
                   const measurementData = _toMeasurementData(m, toolType);
-                  cornerstoneTools.addToolState(
-                    element,
-                    toolType,
-                    measurementData
-                  );
+                  const instance = {
+                    StudyInstanceUID: m.reference_study_uid,
+                    SeriesInstanceUID: m.reference_series_uid,
+                    SOPInstanceUID: m.sop_instance_uid,
+                  };
+                  if (m.reference_series_uid === SeriesInstanceUID) {
+                    const imageId = dataSource.getImageIdsForInstance({
+                      instance,
+                    });
+                    cornerstoneTools.globalImageIdSpecificToolStateManager.addImageIdToolState(
+                      imageId,
+                      toolType,
+                      {
+                        ...measurementData,
+                        id: m.id,
+                      }
+                    );
+                  }
                   addOrUpdate(toolType, {
                     element,
                     toolName: toolType,
                     toolType,
                     measurementData,
-                    id: m.uid,
+                    id: m.id,
+                    instance: {
+                      ...instance,
+                      FrameOfReferenceUID: m.frame_of_reference_uid,
+                      displaySetInstanceUID: displaySet.displaySetInstanceUID,
+                    },
                   });
                 });
+                cornerstone.updateImage(element);
               }
             }
-          }
-        );
+          });
       });
     }
 
@@ -321,10 +342,11 @@ const _toMeasurementData = (measurement, toolType) => {
     };
   } else if (toolType === 'NLFreehandRoi') {
     return {
-      handles: measurement.handles,
+      handles: measurement.handles.handles,
+      polyBoundingBox: measurement.handles.polyBoundingBox,
       meanStdDev: {
         mean: measurement.mean,
-        stdDev: measurement.stdDev,
+        stdDev: measurement.std_dev,
       },
       area: measurement.area,
       unit: measurement.unit,
@@ -348,18 +370,6 @@ const _toMeasurementData = (measurement, toolType) => {
     };
   }
 };
-
-async function _getMeasurements(StudyInstanceUID, SeriesInstanceUID) {
-  const study = DicomMetadataStore.getStudy(StudyInstanceUID);
-  const series = study.series.find(s => s.uid === SeriesInstanceUID);
-  const response = await nlApi.get('/api/measurement/', {
-    params: {
-      study_id: series.study_id,
-      series_id: series.id,
-    },
-  });
-  return response.data.results;
-}
 
 function _subscribeToJumpToMeasurementEvents(
   MeasurementService,
