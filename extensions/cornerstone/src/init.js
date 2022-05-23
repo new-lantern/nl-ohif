@@ -240,11 +240,25 @@ export default function init({
                 label,
               });
 
-              MeasurementService.update(
-                updatedMeasurement.id,
-                updatedMeasurement,
-                true
-              );
+              nlApi
+                .patch(`/api/measurement/${updatedMeasurement.id}/`, { label })
+                .then(() => {
+                  UINotificationService.show({
+                    message: 'The measurement label has been updated',
+                    type: 'info',
+                  });
+                  MeasurementService.update(
+                    updatedMeasurement.id,
+                    updatedMeasurement,
+                    true
+                  );
+                })
+                .catch(err =>
+                  UINotificationService.show({
+                    message: 'Failed to store the measurement label',
+                    type: 'error',
+                  })
+                );
             },
             false
           );
@@ -518,7 +532,28 @@ const _connectToolsToMeasurementService = (
 
         evtDetail.id = csToolsEvent.detail.measurementData.id;
 
-        addOrUpdate(csToolName, evtDetail);
+        const { toMeasurementSchema } = sourceMappings.find(
+          mapping => mapping.definition === csToolName
+        );
+        const measurement = toMeasurementSchema(evtDetail);
+        nlApi
+          .put(
+            `/api/measurement/${evtDetail.id}/`,
+            _transformMeasurement(measurement, csToolsVer4MeasurementSource)
+          )
+          .then(({ data }) => {
+            UINotificationService.show({
+              message: 'The measurement has been updated',
+              type: 'info',
+            });
+            addOrUpdate(csToolName, evtDetail);
+          })
+          .catch(err =>
+            UINotificationService.show({
+              message: 'Failed to update the measurement',
+              type: 'error',
+            })
+          );
       } catch (error) {
         console.warn('Failed to update measurement:', error);
       }
@@ -578,24 +613,6 @@ const _connectToolsToMeasurementService = (
           // This event was fired by cornerstone telling the measurement service to sync. Already in sync.
           return;
         }
-
-        nlApi
-          .put(
-            `/api/measurement/${id}/`,
-            _transformMeasurement(measurement, source)
-          )
-          .then(() => {
-            UINotificationService.show({
-              message: 'The measurement has been updated',
-              type: 'info',
-            });
-          })
-          .catch(() =>
-            UINotificationService.show({
-              message: 'Failed to store the measurement',
-              type: 'error',
-            })
-          );
 
         const cornerstoneMeasurement = getCornerstoneMeasurementById(id);
 
