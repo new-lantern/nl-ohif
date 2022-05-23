@@ -167,6 +167,10 @@ function OHIFCornerstoneViewport({
                     SeriesInstanceUID: m.reference_series_uid,
                     SOPInstanceUID: m.sop_instance_uid,
                   };
+                  const _displaySet = DisplaySetService.getDisplaySetForSOPInstanceUID(
+                    instance.SOPInstanceUID,
+                    instance.SeriesInstanceUID
+                  );
                   if (m.reference_series_uid === SeriesInstanceUID) {
                     const imageId = dataSource.getImageIdsForInstance({
                       instance,
@@ -189,7 +193,7 @@ function OHIFCornerstoneViewport({
                     instance: {
                       ...instance,
                       FrameOfReferenceUID: m.frame_of_reference_uid,
-                      displaySetInstanceUID: displaySet.displaySetInstanceUID,
+                      displaySetInstanceUID: _displaySet.displaySetInstanceUID,
                     },
                   });
                 });
@@ -334,11 +338,13 @@ const _toMeasurementData = (measurement, toolType) => {
         stdDev: measurement.std_dev,
       },
       unit: measurement.unit,
+      label: measurement.label || measurement.text,
     };
   } else if (toolType === 'Angle') {
     return {
       handles: measurement.handles,
       rAngle: measurement.angle,
+      text: measurement.label || measurement.text,
     };
   } else if (toolType === 'NLFreehandRoi') {
     return {
@@ -350,12 +356,14 @@ const _toMeasurementData = (measurement, toolType) => {
       },
       area: measurement.area,
       unit: measurement.unit,
+      label: measurement.label || measurement.text,
     };
   } else if (toolType === 'Bidirectional') {
     return {
       handles: measurement.handles,
       longestDiameter: measurement.longest_diameter,
       shortestDiameter: measurement.shortest_diameter,
+      label: measurement.label || measurement.text,
     };
   } else if (toolType === 'ArrowAnnotate') {
     return {
@@ -367,6 +375,7 @@ const _toMeasurementData = (measurement, toolType) => {
       handles: measurement.handles,
       length: measurement.length,
       unit: measurement.unit,
+      label: measurement.label || measurement.text,
     };
   }
 };

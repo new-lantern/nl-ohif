@@ -517,28 +517,8 @@ const _connectToolsToMeasurementService = (
         const csToolName = toolName || measurementData.toolType || toolType;
 
         evtDetail.id = csToolsEvent.detail.measurementData.id;
-        const { toMeasurementSchema } = sourceMappings.find(
-          mapping => mapping.definition === csToolName
-        );
-        const measurement = toMeasurementSchema(evtDetail);
-        nlApi
-          .put(
-            `/api/measurement/${evtDetail.id}/`,
-            _transformMeasurement(measurement, csToolsVer4MeasurementSource)
-          )
-          .then(({ data }) => {
-            UINotificationService.show({
-              message: 'The measurement has been updated',
-              type: 'info',
-            });
-            addOrUpdate(csToolName, evtDetail);
-          })
-          .catch(err =>
-            UINotificationService.show({
-              message: 'Failed to store the measurement',
-              type: 'error',
-            })
-          );
+
+        addOrUpdate(csToolName, evtDetail);
       } catch (error) {
         console.warn('Failed to update measurement:', error);
       }
@@ -598,6 +578,25 @@ const _connectToolsToMeasurementService = (
           // This event was fired by cornerstone telling the measurement service to sync. Already in sync.
           return;
         }
+
+        nlApi
+          .put(
+            `/api/measurement/${id}/`,
+            _transformMeasurement(measurement, source)
+          )
+          .then(() => {
+            UINotificationService.show({
+              message: 'The measurement has been updated',
+              type: 'info',
+            });
+          })
+          .catch(() =>
+            UINotificationService.show({
+              message: 'Failed to store the measurement',
+              type: 'error',
+            })
+          );
+
         const cornerstoneMeasurement = getCornerstoneMeasurementById(id);
 
         if (cornerstoneMeasurement) {
