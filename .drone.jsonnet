@@ -3,61 +3,6 @@ local pipelineCommon = {
   type: 'docker',
 };
 
-local cacheCommon = {
-  image: 'danihodovic/drone-cache',
-  settings: {
-    backend: 'gcs',
-    bucket: 'newlantern-drone-ci-bucket',
-    cache_key: '{{ .Repo.Name }}_{{ checksum "yarn.lock" }}',
-    mount: ['.npm'],
-  },
-};
-
-local restoreCache = cacheCommon {
-  name: 'restore-cache',
-  settings+: {
-    restore: true,
-  },
-};
-
-local rebuildCache = cacheCommon {
-  name: 'rebuild-cache',
-  depends_on: ['install-deps'],
-  settings+: {
-    rebuild: true,
-  },
-};
-
-local jsStepCommon = {
-  image: 'node:14',
-};
-
-local mainPipeline = pipelineCommon {
-  name: 'main',
-  trigger: {
-    event: [
-      'push',
-    ],
-  },
-  steps: [
-    restoreCache,
-    jsStepCommon {
-      name: 'install-deps',
-      depends_on: ['restore-cache'],
-      commands: [
-        'yarn config set yarn-offline-mirror $PWD/.npm',
-        'yarn --prefer-offline  --frozen-lockfile',
-      ],
-    },
-    jsStepCommon {
-      name: 'lint',
-      depends_on: ['install-deps'],
-      commands: ['npm run-script lint'],
-    },
-    rebuildCache,
-  ],
-};
-
 
 local slackDeployMessage = {
   name: 'slack',
@@ -81,59 +26,37 @@ local slackDeployMessage = {
 
 
 local deployCommon = pipelineCommon {
-  depends_on: [
-    'main',
-  ],
   trigger: {
+    branch: [
+      'feat/nl-dev',
+    ],
     event: [
-      'promote',
+      'push',
     ],
   },
   steps: [
     {
       name: 'deploy',
-      image: 'honeylogic/tanka',
+      image: 'danihodovic/ansible',
       environment: {
-        AGE_PRIVATE_KEY: {
-          from_secret: 'AGE_PRIVATE_KEY',
+        SSH_KEY: {
+          from_secret: 'deployment_ssh_key',
+        },
+        VAULT_KEY: {
+          from_secret: 'vault_key',
         },
       },
       commands: [
-        'export GIT_COMMIT=$(git rev-parse --short HEAD)',
-        'git clone https://github.com/new-lantern/nl-ops.git',
-        'cd nl-ops',
-        'echo $AGE_PRIVATE_KEY > ~/.config/sops/age/keys.txt',
+        'cd platform/viewer',
+        'yarn prepare',
+        'cd dist',
+        ''
       ],
     },
   ],
 };
 
-local deployStagingPipeline = deployCommon {
-  name: 'deploy-staging',
-  trigger: {
-    target+: 'staging',
-  },
-  steps: [deployCommon.steps[0] {
-    commands+: [
-      'task apply-staging -- tanka/environments/staging/nl_pacs.jsonnet $GIT_COMMIT',
-    ],
-  }, slackDeployMessage],
-};
-
-local deployProductionPipeline = deployCommon {
-  name: 'deploy-production',
-  trigger: {
-    target+: 'production',
-  },
-  steps: [deployCommon.steps[0] {
-    commands+: [
-      'task apply-prod -- tanka/environments/production/nl_pacs.jsonnet $GIT_COMMIT',
-    ],
-  }, slackDeployMessage],
-};
 
 [
-  mainPipeline,
-  deployStagingPipeline,
-  deployProductionPipeline,
+  deployCommon,
 ]
