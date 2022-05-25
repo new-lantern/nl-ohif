@@ -141,7 +141,7 @@ function OHIFCornerstoneViewport({
         const { StudyInstanceUID, SeriesInstanceUID } = displaySet;
         const study = DicomMetadataStore.getStudy(StudyInstanceUID);
         nlApi
-          .get('/api/measurement/', { params: { study_id: study.id } })
+          .get(`/api/measurement/?study_id=${study.series[0].study_id}`)
           .then(({ data }) => {
             const { VALUE_TYPES } = MeasurementService;
             const VALUE_TYPE_TO_TOOL_TYPE = {
