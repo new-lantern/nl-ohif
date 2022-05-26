@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import cornerstone from 'cornerstone-core';
-import cornerstoneTools from 'cornerstone-tools';
+import csTools from 'cornerstone-tools';
 import CornerstoneViewport from 'react-cornerstone-viewport';
 import OHIF from '@ohif/core';
 import ViewportLoadingIndicator from './ViewportLoadingIndicator';
@@ -10,7 +10,7 @@ import ViewportOverlay from './ViewportOverlay';
 
 import { useCine, useViewportGrid } from '@ohif/ui';
 
-const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
+const scrollToIndex = csTools.importInternal('util/scrollToIndex');
 
 const { StackManager, nlApi } = OHIF.utils;
 const { DicomMetadataStore } = OHIF;
@@ -159,44 +159,60 @@ function OHIFCornerstoneViewport({
               const source = MeasurementService.getSource(name, version);
               if (source) {
                 const { addOrUpdate } = source;
-                _measurements.forEach(m => {
-                  const toolType = VALUE_TYPE_TO_TOOL_TYPE[m.type];
-                  const measurementData = _toMeasurementData(m, toolType);
-                  const instance = {
-                    StudyInstanceUID: m.reference_study_uid,
-                    SeriesInstanceUID: m.reference_series_uid,
-                    SOPInstanceUID: m.sop_instance_uid,
-                  };
-                  const _displaySet = DisplaySetService.getDisplaySetForSOPInstanceUID(
-                    instance.SOPInstanceUID,
-                    instance.SeriesInstanceUID
-                  );
-                  if (m.reference_series_uid === SeriesInstanceUID) {
-                    const imageId = dataSource.getImageIdsForInstance({
-                      instance,
-                    });
-                    cornerstoneTools.globalImageIdSpecificToolStateManager.addImageIdToolState(
-                      imageId,
-                      toolType,
-                      {
-                        ...measurementData,
-                        id: m.id,
-                      }
+                _measurements
+                  .sort((x, y) => new Date(x.created) - new Date(y.created))
+                  .forEach(m => {
+                    const toolType = VALUE_TYPE_TO_TOOL_TYPE[m.type];
+                    const measurementData = _toMeasurementData(m, toolType);
+                    const instance = {
+                      StudyInstanceUID: m.reference_study_uid,
+                      SeriesInstanceUID: m.reference_series_uid,
+                      SOPInstanceUID: m.sop_instance_uid,
+                    };
+                    const _displaySet = DisplaySetService.getDisplaySetForSOPInstanceUID(
+                      instance.SOPInstanceUID,
+                      instance.SeriesInstanceUID
                     );
-                  }
-                  addOrUpdate(toolType, {
-                    element,
-                    toolName: toolType,
-                    toolType,
-                    measurementData,
-                    id: m.id,
-                    instance: {
-                      ...instance,
-                      FrameOfReferenceUID: m.frame_of_reference_uid,
-                      displaySetInstanceUID: _displaySet.displaySetInstanceUID,
-                    },
+                    if (m.reference_series_uid === SeriesInstanceUID) {
+                      const imageId = dataSource.getImageIdsForInstance({
+                        instance,
+                      });
+                      const { globalImageIdSpecificToolStateManager } = csTools;
+                      const {
+                        toolState,
+                      } = globalImageIdSpecificToolStateManager;
+                      if (
+                        toolState[imageId] &&
+                        toolState[imageId][toolType] &&
+                        toolState[imageId][toolType].data.find(
+                          x => x.id === m.id
+                        )
+                      ) {
+                        return;
+                      }
+                      globalImageIdSpecificToolStateManager.addImageIdToolState(
+                        imageId,
+                        toolType,
+                        {
+                          ...measurementData,
+                          id: m.id,
+                        }
+                      );
+                    }
+                    addOrUpdate(toolType, {
+                      element,
+                      toolName: toolType,
+                      toolType,
+                      measurementData,
+                      id: m.id,
+                      instance: {
+                        ...instance,
+                        FrameOfReferenceUID: m.frame_of_reference_uid,
+                        displaySetInstanceUID:
+                          _displaySet.displaySetInstanceUID,
+                      },
+                    });
                   });
-                });
                 cornerstone.updateImage(element);
               }
             }

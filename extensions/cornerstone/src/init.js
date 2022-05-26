@@ -481,7 +481,7 @@ const _connectToolsToMeasurementService = (
   /* Measurement Service Events */
   cs.events.addEventListener(elementEnabledEvt, evt => {
     // TODO: Debounced update of measurements that are modified
-    function addMeasurement(csToolsEvent) {
+    const addMeasurement = debounce(function(csToolsEvent) {
       console.log('CSTOOLS::addOrUpdate', csToolsEvent, csToolsEvent.detail);
 
       try {
@@ -518,7 +518,7 @@ const _connectToolsToMeasurementService = (
       } catch (error) {
         console.warn('Failed to add measurement:', error);
       }
-    }
+    }, 250);
 
     const updateMeasurement = debounce(function(csToolsEvent) {
       try {
