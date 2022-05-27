@@ -10,7 +10,7 @@ local slackDeployMessage = {
   settings: {
     webhook: 'https://hooks.slack.com/services/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',
     icon_url: 'https://iconape.com/wp-content/png_logo_vector/drone.png',
-    channel: 'deployments',
+    channel: 'ci-cd-test',
     username: 'Drone',
     template: |||
       {{#success build.status}}
@@ -28,7 +28,7 @@ local slackDeployMessage = {
 local deployCommon = pipelineCommon {
   trigger: {
     branch: [
-      'feat/nl-dev',
+      'feat/ci-cd',
     ],
     event: [
       'push',
@@ -47,12 +47,10 @@ local deployCommon = pipelineCommon {
         },
       },
       commands: [
-        'cd platform/viewer',
-        'yarn prepare',
-        'cd dist',
-        ''
+        'echo hello_world',
       ],
     },
+    slackDeployMessage,
   ],
 };
 
