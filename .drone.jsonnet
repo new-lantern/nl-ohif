@@ -3,6 +3,9 @@ local pipelineCommon = {
   type: 'docker',
 };
 
+local jsStepCommon = {
+  image: 'node:14',
+};
 
 local slackDeployMessage = {
   name: 'slack',
@@ -22,6 +25,22 @@ local slackDeployMessage = {
       {{/success}}
     |||,
   },
+};
+
+local mainPipeline = pipelineCommon {
+  name: 'main',
+  trigger: {
+    event: [
+      'push',
+    ],
+  },
+  steps: [
+    jsStepCommon {
+      name: 'lint',
+      depends_on: ['install-deps'],
+      commands: ['npm run-script lint'],
+    },
+  ],
 };
 
 local deployCommon = pipelineCommon {
