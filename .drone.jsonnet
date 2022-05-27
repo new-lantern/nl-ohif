@@ -37,7 +37,6 @@ local mainPipeline = pipelineCommon {
   steps: [
     jsStepCommon {
       name: 'lint',
-      depends_on: ['install-deps'],
       commands: ['npm run-script lint'],
     },
   ],
