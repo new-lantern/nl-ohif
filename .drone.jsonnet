@@ -77,7 +77,7 @@ local deployProduction = deployCommon {
   steps: [
     deployCommon.steps[0],
     {
-      name: 'deploy',
+      name: 'deploy-production',
       image: 'danihodovic/ansible',
       environment: {
         SSH_KEY: {
