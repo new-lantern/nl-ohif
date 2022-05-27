@@ -24,8 +24,35 @@ local slackDeployMessage = {
   },
 };
 
-
 local deployCommon = pipelineCommon {
+  depends_on: [
+    'main',
+  ],
+  trigger: {
+    event: [
+      'promote',
+    ],
+  },
+  steps: [
+    {
+      name: 'deploy',
+      image: 'honeylogic/tanka',
+      environment: {
+        AGE_PRIVATE_KEY: {
+          from_secret: 'AGE_PRIVATE_KEY',
+        },
+      },
+      commands: [
+        'export GIT_COMMIT=$(git rev-parse --short HEAD)',
+        'git clone https://github.com/new-lantern/nl-ops.git',
+        'cd nl-ops',
+        'echo $AGE_PRIVATE_KEY > ~/.config/sops/age/keys.txt',
+      ],
+    },
+  ],
+};
+
+local deployProduction = deployCommon {
   trigger: {
     branch: [
       'feat/ci-cd',
@@ -56,5 +83,5 @@ local deployCommon = pipelineCommon {
 
 
 [
-  deployCommon,
+  deployProduction,
 ]
