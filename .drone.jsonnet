@@ -98,5 +98,6 @@ local deployProduction = deployCommon {
 
 
 [
+  mainPipeline,
   deployProduction,
 ]
