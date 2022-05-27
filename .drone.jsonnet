@@ -47,11 +47,6 @@ local deployCommon = pipelineCommon {
   depends_on: [
     'main',
   ],
-  trigger: {
-    event: [
-      'promote',
-    ],
-  },
   steps: [
     {
       name: 'deploy',
@@ -81,6 +76,7 @@ local deployProduction = deployCommon {
     ],
   },
   steps: [
+    deployCommon.steps[0],
     {
       name: 'deploy',
       image: 'danihodovic/ansible',
