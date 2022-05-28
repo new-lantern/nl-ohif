@@ -7,6 +7,13 @@ local jsStepCommon = {
   image: 'node:14',
 };
 
+local restoreCache = cacheCommon {
+  name: 'restore-cache',
+  settings+: {
+    restore: true,
+  },
+};
+
 local slackDeployMessage = {
   name: 'slack',
   image: 'plugins/slack',
@@ -35,8 +42,18 @@ local mainPipeline = pipelineCommon {
     ],
   },
   steps: [
+    restoreCache,
+    jsStepCommon {
+      name: 'install-deps',
+      depends_on: ['restore-cache'],
+      commands: [
+        'yarn config set yarn-offline-mirror $PWD/.npm',
+        'yarn --prefer-offline  --frozen-lockfile',
+      ],
+    },
     jsStepCommon {
       name: 'lint',
+      depends_on: ['install-deps'],
       commands: ['npm run-script lint'],
     },
   ],

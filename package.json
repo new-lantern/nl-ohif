@@ -53,8 +53,7 @@
     "lerna:version": "npx lerna version prerelease --force-publish",
     "lerna:publish": "lerna publish from-package --canary --dist-tag canary",
     "link-list": "npm ls --depth=0 --link=true",
-    "lint:fix": "eslint src/** --fix",
-    "lint": "eslint src/** --no-error-on-unmatched-pattern"
+    "lint": "eslint modes/** extensions/** platform/** --no-error-on-unmatched-pattern"
   },
   "dependencies": {
     "@babel/runtime": "7.7.6",
