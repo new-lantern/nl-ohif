@@ -7,6 +7,16 @@ local jsStepCommon = {
   image: 'node:14',
 };
 
+local cacheCommon = {
+  image: 'danihodovic/drone-cache',
+  settings: {
+    backend: 'gcs',
+    bucket: 'newlantern-drone-ci-bucket',
+    cache_key: '{{ .Repo.Name }}_{{ checksum "yarn.lock" }}',
+    mount: ['.npm'],
+  },
+};
+
 local restoreCache = cacheCommon {
   name: 'restore-cache',
   settings+: {
