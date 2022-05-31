@@ -53,14 +53,6 @@ local mainPipeline = pipelineCommon {
   },
   steps: [
     restoreCache,
-    jsStepCommon {
-      name: 'install-deps',
-      depends_on: ['restore-cache'],
-      commands: [
-        'yarn config set yarn-offline-mirror $PWD/.npm',
-        'yarn --prefer-offline  --frozen-lockfile',
-      ],
-    }
   ],
 };
 
