@@ -28,7 +28,7 @@ local slackDeployMessage = {
   name: 'slack',
   image: 'plugins/slack',
   settings: {
-    webhook: 'https://hooks.slack.com/services/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',
+    webhook: 'https://hooks.slack.com/services/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',
     icon_url: 'https://iconape.com/wp-content/png_logo_vector/drone.png',
     channel: 'ci-cd-test',
     username: 'Drone',
