@@ -60,12 +60,7 @@ local mainPipeline = pipelineCommon {
         'yarn config set yarn-offline-mirror $PWD/.npm',
         'yarn --prefer-offline  --frozen-lockfile',
       ],
-    },
-    jsStepCommon {
-      name: 'lint',
-      depends_on: ['install-deps'],
-      commands: ['npm run-script lint'],
-    },
+    }
   ],
 };
 
@@ -102,7 +97,6 @@ local deployProduction = deployCommon {
     ],
   },
   steps: [
-    deployCommon.steps[0],
     {
       name: 'deploy-production',
       image: 'danihodovic/ansible',
