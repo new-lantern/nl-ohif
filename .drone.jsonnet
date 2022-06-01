@@ -103,7 +103,10 @@ local deployProduction = deployCommon {
         },
       },
       commands: [
-        'echo hello_world',
+        'cd platform/viewer',
+        'yarn prepare',
+        'cd dist',
+        'echo success',
       ],
     },
     slackDeployMessage,
