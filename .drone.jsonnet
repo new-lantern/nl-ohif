@@ -95,7 +95,7 @@ local deployProduction = deployCommon {
       name: 'deploy-production',
       commands: [
         'cd platform/viewer',
-        'yarn --prefer-offline  --frozen-lockfile',
+        'yarn',
         'yarn prepare',
         'cd dist',
         'echo success',
