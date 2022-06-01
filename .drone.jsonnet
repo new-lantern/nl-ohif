@@ -91,17 +91,8 @@ local deployProduction = deployCommon {
     ],
   },
   steps: [
-    {
+    jsStepCommon {
       name: 'deploy-production',
-      image: 'danihodovic/ansible',
-      environment: {
-        SSH_KEY: {
-          from_secret: 'deployment_ssh_key',
-        },
-        VAULT_KEY: {
-          from_secret: 'vault_key',
-        },
-      },
       commands: [
         'cd platform/viewer',
         'yarn prepare',
