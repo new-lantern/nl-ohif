@@ -97,7 +97,6 @@ local deployProduction = deployCommon {
         NAME: '@newlantern/viewer',
         ENTRY: 'index.umd.js',
         REPO: 'https://github.com/new-lantern/nl-ohif',
-        LISCENSE: 'MIT',
       },
       commands: [
         'cd platform/viewer',
@@ -105,13 +104,13 @@ local deployProduction = deployCommon {
         'yarn prepare',
         'cd dist',
         'VERSION=$(npm view @newlantern/viewer version)',
-        'echo "{\n"\
-          "\"name\": \"@newlantern/viewer\",\n"\
-          "\"version\": \"4.4.4\",\n"\
-          "\"main\": \"index.umd.js\",\n"\
-          "\"repository\": \"https://github.com/new-lantern/nl-ohif\",\n"\
-          "\"license\": \"MIT\"\n"\
-        "}" >> package.json',
+        'echo "{" >> package.json',
+        'echo "  \\"name\\": \\"$NAME\\"," >> package.json',
+        'echo "  \\"version\\": \\"$VERSION\\"," >> package.json',
+        'echo "  \\"main\\": \\"$ENTRY\\"," >> package.json',
+        'echo "  \\"repository\\": \\"$REPO\\"," >> package.json',
+        'echo "  \\"license\\": "MIT\\"" >> package.json',
+        'echo "}" >> package.json',
         'cat package.json',
       ],
     },
@@ -124,11 +123,3 @@ local deployProduction = deployCommon {
   mainPipeline,
   deployProduction,
 ]
-
-echo "{\n"\
-  "\"name\": \"@newlantern/viewer\",\n"\
-  "\"version\": \"4.4.4\",\n"\
-  "\"main\": \"index.umd.js\",\n"\
-  "\"repository\": \"https://github.com/new-lantern/nl-ohif\",\n"\
-  "\"license\": \"MIT\"\n"\
-"}"

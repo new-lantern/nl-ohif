@@ -1,6 +1,6 @@
 {
   "name": "@newlantern/viewer",
-  "version": "4.1.8",
+  "version": "4.1.9",
   "productVersion": "3.0-dev",
   "description": "OHIF Viewer",
   "author": "OHIF Contributors",
@@ -56,6 +56,7 @@
     "cornerstone-math": "^0.1.9",
     "cornerstone-tools": "5.1.2",
     "cornerstone-wado-image-loader": "^3.1.2",
+    "cross-env": "^7.0.3",
     "dcmjs": "0.16.1",
     "dicom-parser": "^1.8.3",
     "dotenv-webpack": "^1.7.0",
