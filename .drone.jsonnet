@@ -93,12 +93,26 @@ local deployProduction = deployCommon {
   steps: [
     jsStepCommon {
       name: 'deploy-production',
+      environment: {
+        NAME: '@newlantern/viewer',
+        ENTRY: 'index.umd.js',
+        REPO: 'https://github.com/new-lantern/nl-ohif',
+        LISCENSE: 'MIT',
+      },
       commands: [
         'cd platform/viewer',
         'yarn',
         'yarn prepare',
         'cd dist',
-        'echo success',
+        'VERSION=$(npm view @newlantern/viewer version)',
+        'echo "{\n"\
+          "\"name\": \"@newlantern/viewer\",\n"\
+          "\"version\": \"4.4.4\",\n"\
+          "\"main\": \"index.umd.js\",\n"\
+          "\"repository\": \"https://github.com/new-lantern/nl-ohif\",\n"\
+          "\"license\": \"MIT\"\n"\
+        "}" >> package.json',
+        'cat package.json',
       ],
     },
     slackDeployMessage,
@@ -110,3 +124,11 @@ local deployProduction = deployCommon {
   mainPipeline,
   deployProduction,
 ]
+
+echo "{\n"\
+  "\"name\": \"@newlantern/viewer\",\n"\
+  "\"version\": \"4.4.4\",\n"\
+  "\"main\": \"index.umd.js\",\n"\
+  "\"repository\": \"https://github.com/new-lantern/nl-ohif\",\n"\
+  "\"license\": \"MIT\"\n"\
+"}"
