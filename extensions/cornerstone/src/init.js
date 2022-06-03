@@ -171,20 +171,12 @@ export default function init({
           // Sync'd w/ Measurement Service
           if (measurementData.id) {
             measurementServiceSource.remove(measurementData.id);
-            nlApi
-              .delete(`/api/measurement/${measurementData.id}`)
-              .then(() => {
-                UINotificationService.show({
-                  message: 'The measurement has been deleted',
-                  type: 'info',
-                });
+            nlApi.delete(`/api/measurement/${measurementData.id}`).catch(err =>
+              UINotificationService.show({
+                message: 'Failed to delete the measurement',
+                type: 'error',
               })
-              .catch(err =>
-                UINotificationService.show({
-                  message: 'Failed to delete the measurement',
-                  type: 'error',
-                })
-              );
+            );
           }
           // Only in cstools
           else {
@@ -242,17 +234,13 @@ export default function init({
 
               nlApi
                 .patch(`/api/measurement/${updatedMeasurement.id}/`, { label })
-                .then(() => {
-                  UINotificationService.show({
-                    message: 'The measurement label has been updated',
-                    type: 'info',
-                  });
+                .then(() =>
                   MeasurementService.update(
                     updatedMeasurement.id,
                     updatedMeasurement,
                     true
-                  );
-                })
+                  )
+                )
                 .catch(err =>
                   UINotificationService.show({
                     message: 'Failed to store the measurement label',
@@ -499,10 +487,6 @@ const _connectToolsToMeasurementService = (
             _transformMeasurement(measurement, csToolsVer4MeasurementSource)
           )
           .then(({ data }) => {
-            UINotificationService.show({
-              message: 'New measurement has been stored',
-              type: 'info',
-            });
             const { id } = data;
             const measurementId = addOrUpdate(csToolName, { ...evtDetail, id });
             if (measurementId) {
@@ -541,13 +525,7 @@ const _connectToolsToMeasurementService = (
             `/api/measurement/${evtDetail.id}/`,
             _transformMeasurement(measurement, csToolsVer4MeasurementSource)
           )
-          .then(({ data }) => {
-            UINotificationService.show({
-              message: 'The measurement has been updated',
-              type: 'info',
-            });
-            addOrUpdate(csToolName, evtDetail);
-          })
+          .then(({ data }) => addOrUpdate(csToolName, evtDetail))
           .catch(err =>
             UINotificationService.show({
               message: 'Failed to update the measurement',
@@ -571,20 +549,12 @@ const _connectToolsToMeasurementService = (
         if (csToolsEvent.detail.measurementData.id) {
           remove(csToolsEvent.detail.measurementData.id);
           const id = csToolsEvent.detail.measurementData.id;
-          nlApi
-            .delete(`/api/measurement/${id}`)
-            .then(() => {
-              UINotificationService.show({
-                message: 'The measurement has been deleted',
-                type: 'info',
-              });
+          nlApi.delete(`/api/measurement/${id}`).catch(err =>
+            UINotificationService.show({
+              message: 'Failed to delete the measurement',
+              type: 'error',
             })
-            .catch(err =>
-              UINotificationService.show({
-                message: 'Failed to delete the measurement',
-                type: 'error',
-              })
-            );
+          );
         }
       } catch (error) {
         console.warn('Failed to remove measurement:', error);

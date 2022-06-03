@@ -170,11 +170,7 @@ function PanelMeasurementTableTracking({ servicesManager, extensionManager }) {
         case 'save': {
           nlApi
             .patch(`/api/measurement/${id}/`, { ...value })
-            .then(() => {
-              UINotificationService.show({
-                message: 'The measurement label has been updated',
-                type: 'info',
-              });
+            .then(() =>
               MeasurementService.update(
                 id,
                 {
@@ -182,8 +178,8 @@ function PanelMeasurementTableTracking({ servicesManager, extensionManager }) {
                   ...value,
                 },
                 true
-              );
-            })
+              )
+            )
             .catch(err =>
               UINotificationService.show({
                 message: 'Failed to update the measurement label',
