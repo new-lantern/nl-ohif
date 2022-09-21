@@ -28,32 +28,32 @@ export default function PanelPetSUV({ servicesManager, commandsManager }) {
     DisplaySetService,
     ToolGroupService,
     ToolBarService,
+    HangingProtocolService,
   } = servicesManager.services;
   const [metadata, setMetadata] = useState(DEFAULT_MEATADATA);
   const [ptDisplaySet, setPtDisplaySet] = useState(null);
 
-  const handleMetadataChange = useCallback(
-    metadata => {
-      setMetadata(prevState => {
-        const newState = { ...prevState };
-        Object.keys(metadata).forEach(key => {
-          if (typeof metadata[key] === 'object') {
-            newState[key] = {
-              ...prevState[key],
-              ...metadata[key],
-            };
-          } else {
-            newState[key] = metadata[key];
-          }
-        });
-        return newState;
+  const handleMetadataChange = metadata => {
+    setMetadata(prevState => {
+      const newState = { ...prevState };
+      Object.keys(metadata).forEach(key => {
+        if (typeof metadata[key] === 'object') {
+          newState[key] = {
+            ...prevState[key],
+            ...metadata[key],
+          };
+        } else {
+          newState[key] = metadata[key];
+        }
       });
-    },
-    [metadata]
-  );
+      return newState;
+    });
+  };
 
-  const getMatchingPTDisplaySet = useCallback(() => {
-    const ptDisplaySet = commandsManager.runCommand('getMatchingPTDisplaySet');
+  const getMatchingPTDisplaySet = viewportMatchDetails => {
+    const ptDisplaySet = commandsManager.runCommand('getMatchingPTDisplaySet', {
+      viewportMatchDetails,
+    });
 
     if (!ptDisplaySet) {
       return;
@@ -67,16 +67,16 @@ export default function PanelPetSUV({ servicesManager, commandsManager }) {
       ptDisplaySet,
       metadata,
     };
-  }, []);
+  };
 
   useEffect(() => {
-    const displaySets = DisplaySetService.activeDisplaySets;
-
+    const displaySets = DisplaySetService.getActiveDisplaySets();
+    const { viewportMatchDetails } = HangingProtocolService.getMatchDetails();
     if (!displaySets.length) {
       return;
     }
 
-    const displaySetInfo = getMatchingPTDisplaySet();
+    const displaySetInfo = getMatchingPTDisplaySet(viewportMatchDetails);
 
     if (!displaySetInfo) {
       return;
@@ -89,15 +89,14 @@ export default function PanelPetSUV({ servicesManager, commandsManager }) {
 
   // get the patientMetadata from the StudyInstanceUIDs and update the state
   useEffect(() => {
-    const { unsubscribe } = DisplaySetService.subscribe(
-      DisplaySetService.EVENTS.DISPLAY_SETS_ADDED,
-      () => {
-        const displaySetInfo = getMatchingPTDisplaySet();
+    const { unsubscribe } = HangingProtocolService.subscribe(
+      HangingProtocolService.EVENTS.PROTOCOL_CHANGED,
+      ({ viewportMatchDetails }) => {
+        const displaySetInfo = getMatchingPTDisplaySet(viewportMatchDetails);
 
         if (!displaySetInfo) {
           return;
         }
-
         const { ptDisplaySet, metadata } = displaySetInfo;
         setPtDisplaySet(ptDisplaySet);
         setMetadata(metadata);
@@ -149,13 +148,11 @@ export default function PanelPetSUV({ servicesManager, commandsManager }) {
     <div className="overflow-x-hidden overflow-y-auto invisible-scrollbar">
       {
         <div className="flex flex-col">
-          <div className="flex flex-col p-4 space-y-2 bg-primary-dark">
+          <div className="flex flex-col p-4 space-y-4 bg-primary-dark">
             <Input
               label={t('Patient Sex')}
-              labelClassName="text-white"
-              className="mt-1 mb-2 bg-black border-primary-main"
-              type="text"
-              containerClassName="mr-2"
+              labelClassName="text-white mb-2"
+              className="mt-1"
               value={metadata.PatientSex || ''}
               onChange={e => {
                 handleMetadataChange({
@@ -165,10 +162,8 @@ export default function PanelPetSUV({ servicesManager, commandsManager }) {
             />
             <Input
               label={t('Patient Weight (kg)')}
-              labelClassName="text-white"
-              className="mt-1 mb-2 bg-black border-primary-main"
-              type="text"
-              containerClassName="mr-2"
+              labelClassName="text-white mb-2"
+              className="mt-1"
               value={metadata.PatientWeight || ''}
               onChange={e => {
                 handleMetadataChange({
@@ -177,11 +172,9 @@ export default function PanelPetSUV({ servicesManager, commandsManager }) {
               }}
             />
             <Input
-              label={t('Total Dose (Mbq)')}
-              labelClassName="text-white"
-              className="mt-1 mb-2 bg-black border-primary-main"
-              type="text"
-              containerClassName="mr-2"
+              label={t('Total Dose (bq)')}
+              labelClassName="text-white mb-2"
+              className="mt-1"
               value={
                 metadata.RadiopharmaceuticalInformationSequence
                   .RadionuclideTotalDose || ''
@@ -196,10 +189,8 @@ export default function PanelPetSUV({ servicesManager, commandsManager }) {
             />
             <Input
               label={t('Half Life (s)')}
-              labelClassName="text-white"
-              className="mt-1 mb-2 bg-black border-primary-main"
-              type="text"
-              containerClassName="mr-2"
+              labelClassName="text-white mb-2"
+              className="mt-1"
               value={
                 metadata.RadiopharmaceuticalInformationSequence
                   .RadionuclideHalfLife || ''
@@ -214,10 +205,8 @@ export default function PanelPetSUV({ servicesManager, commandsManager }) {
             />
             <Input
               label={t('Injection Time (s)')}
-              labelClassName="text-white"
-              className="mt-1 mb-2 bg-black border-primary-main"
-              type="text"
-              containerClassName="mr-2"
+              labelClassName="text-white mb-2"
+              className="mt-1"
               value={
                 metadata.RadiopharmaceuticalInformationSequence
                   .RadiopharmaceuticalStartTime || ''
@@ -232,21 +221,15 @@ export default function PanelPetSUV({ servicesManager, commandsManager }) {
             />
             <Input
               label={t('Acquisition Time (s)')}
-              labelClassName="text-white"
-              className="mt-1 mb-2 bg-black border-primary-main"
-              type="text"
-              containerClassName="mr-2"
+              labelClassName="text-white mb-2"
+              className="mt-1 mb-2"
               value={metadata.SeriesTime || ''}
               onChange={() => {}}
             />
+            <Button color="primary" onClick={updateMetadata}>
+              Reload Data
+            </Button>
           </div>
-          <Button
-            color="primary"
-            onClick={updateMetadata}
-            className="px-1 py-1 mx-4 mt-2 text-xs text-white border-b border-transparent"
-          >
-            Reload Data
-          </Button>
         </div>
       }
     </div>

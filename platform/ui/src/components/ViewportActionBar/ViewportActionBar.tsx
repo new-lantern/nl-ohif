@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import { Icon, ButtonGroup, Button, Tooltip, CinePlayer } from '../';
 import useOnClickOutside from '../../utils/useOnClickOutside';
 import { useTranslation } from 'react-i18next';
+import { StringNumber } from '../../types';
 
 const classes = {
   infoHeader: 'text-base text-primary-light',
@@ -254,7 +255,7 @@ const ViewportActionBar = ({
       }}
       onDoubleClick={onDoubleClick}
     >
-      <div className="flex flex-1 flex-grow mt-2 min-w-48">
+      <div className="flex flex-1 grow mt-2 min-w-48">
         <div className="flex items-center">
           <span className="mr-2 text-white text-large">{label}</span>
           {showStatus && renderIconStatus()}
@@ -286,12 +287,14 @@ const ViewportActionBar = ({
             <Button
               size="initial"
               className="px-2 py-1 bg-black"
+              border="light"
               onClick={() => onSeriesChange('left')}
             >
               <Icon name="chevron-left" className="w-4 text-white" />
             </Button>
             <Button
               size="initial"
+              border="light"
               className="px-2 py-1 bg-black"
               onClick={() => onSeriesChange('right')}
             >
@@ -336,7 +339,7 @@ ViewportActionBar.propTypes = {
     isTracked: PropTypes.bool.isRequired,
     isRehydratable: PropTypes.bool.isRequired,
     studyDate: PropTypes.string.isRequired,
-    currentSeries: PropTypes.string.isRequired,
+    currentSeries: StringNumber.isRequired,
     seriesDescription: PropTypes.string.isRequired,
     modality: PropTypes.string.isRequired,
     patientInformation: PropTypes.shape({
