@@ -127,7 +127,7 @@ describe('HangingProtocolService', () => {
   let initialScaling;
 
   beforeAll(() => {
-    hps.addProtocol(testProtocol.id, testProtocol);
+    hps.addProtocols([testProtocol]);
   });
 
   it('has one protocol', () => {
@@ -137,7 +137,11 @@ describe('HangingProtocolService', () => {
   describe('run', () => {
     it('matches best image match', () => {
       hps.run({ studies: [studyMatch], displaySets: studyMatchDisplaySets });
-      const { hpAlreadyApplied, viewportMatchDetails } = hps.getMatchDetails();
+      const {
+        hpAlreadyApplied,
+        viewportMatchDetails,
+        displaySetMatchDetails,
+      } = hps.getMatchDetails();
       expect(hpAlreadyApplied).toMatchObject([false]);
       expect(viewportMatchDetails.length).toBe(1);
       expect(viewportMatchDetails[0]).toMatchObject({

@@ -1,5 +1,5 @@
 const ptCT = {
-  id: 'ptCT',
+  id: 'tmtv-pt-ct',
   locked: true,
   hasUpdatedPriorsInformation: false,
   name: 'Default',
@@ -15,15 +15,6 @@ const ptCT = {
   ],
   imageLoadStrategy: 'interleaveTopToBottom', // "default" , "interleaveTopToBottom",  "interleaveCenter"
   protocolMatchingRules: [
-    {
-      id: 'wauZK2QNEfDPwcAQo',
-      weight: 1,
-      attribute: 'ModalitiesInStudy',
-      constraint: {
-        contains: ['CT', 'PT'],
-      },
-      required: false,
-    },
     {
       id: 'wauZK2QNEfDPwcAQo',
       weight: 1,
@@ -641,8 +632,8 @@ const ptCT = {
 function getHangingProtocolModule() {
   return [
     {
-      id: ptCT.id,
-      protocol: ptCT,
+      name: 'ptCT',
+      protocols: [ptCT],
     },
   ];
 }

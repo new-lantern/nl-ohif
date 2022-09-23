@@ -17,10 +17,7 @@ import Compose from './Compose';
  * @param props.dataSource to read the data from
  * @returns array of subscriptions to cancel
  */
-function defaultRouteInit(
-  { servicesManager, studyInstanceUIDs, dataSource },
-  hangingProtocol
-) {
+function defaultRouteInit({ servicesManager, studyInstanceUIDs, dataSource }) {
   const {
     DisplaySetService,
     HangingProtocolService,
@@ -78,12 +75,8 @@ function defaultRouteInit(
     // study being displayed, and is thus the "active" study.
     const activeStudy = studies[0];
 
-    // run the hanging protocol matching on the displaySets with the predefined
-    // hanging protocol in the mode configuration
-    HangingProtocolService.run(
-      { studies, activeStudy, displaySets },
-      hangingProtocol
-    );
+    // run the hanging protocol matching service on the displaySets
+    HangingProtocolService.run({ studies, activeStudy, displaySets });
   });
 
   return unsubscriptions;
@@ -114,9 +107,12 @@ export default function ModeRoute({
     locationRef.current = location;
   }
 
-  const { DisplaySetService } = servicesManager.services;
+  const {
+    DisplaySetService,
+    HangingProtocolService,
+  } = servicesManager.services;
 
-  const { extensions, sopClassHandlers, hotkeys, hangingProtocol } = mode;
+  const { extensions, sopClassHandlers, hotkeys, hangingProtocols } = mode;
 
   if (dataSourceName === undefined) {
     dataSourceName = extensionManager.defaultDataSourceName;
@@ -243,28 +239,34 @@ export default function ModeRoute({
     });
     mode?.onModeEnter({ servicesManager, extensionManager, commandsManager });
 
+    // Adding hanging protocols of extensions after onModeEnter since
+    // it will reset the protocols
+    hangingProtocols.forEach(extensionProtocols => {
+      const hangingProtocolModule = extensionManager.getModuleEntry(
+        extensionProtocols
+      );
+
+      if (hangingProtocolModule?.protocols) {
+        HangingProtocolService.addProtocols(hangingProtocolModule.protocols);
+      }
+    });
+
     const setupRouteInit = async () => {
       if (route.init) {
-        return await route.init(
-          {
-            servicesManager,
-            extensionManager,
-            hotkeysManager,
-            studyInstanceUIDs,
-            dataSource,
-          },
-          hangingProtocol
-        );
-      }
-
-      return defaultRouteInit(
-        {
+        return await route.init({
           servicesManager,
+          extensionManager,
+          hotkeysManager,
           studyInstanceUIDs,
           dataSource,
-        },
-        hangingProtocol
-      );
+        });
+      }
+
+      return defaultRouteInit({
+        servicesManager,
+        studyInstanceUIDs,
+        dataSource,
+      });
     };
 
     let unsubscriptions;
@@ -289,6 +291,7 @@ export default function ModeRoute({
     hotkeysManager,
     studyInstanceUIDs,
     refresh,
+    hangingProtocols,
   ]);
 
   const renderLayoutData = props => {

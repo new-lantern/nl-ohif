@@ -6,12 +6,4 @@ import type {
 
 import type Consumer from './Consumer';
 
-import * as HangingProtocol from './HangingProtocol';
-
-export type {
-  HangingProtocol,
-  StudyMetadata,
-  SeriesMetadata,
-  InstanceMetadata,
-  Consumer,
-};
+export { StudyMetadata, SeriesMetadata, InstanceMetadata, Consumer };

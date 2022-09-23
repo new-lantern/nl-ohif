@@ -149,8 +149,8 @@ async function defaultRouteInit({
   });
 
   DicomMetadataStore.subscribe('seriesAdded', ({ StudyInstanceUID }) => {
-    const studyMetadata = // get study metadata and displaySets
-    HangingProtocolService.run({studies, displaySets, activeStudy});
+    const studyMetadata = DicomMetadataStore.getStudy(StudyInstanceUID);
+    HangingProtocolService.run(studyMetadata);
   });
 
   return unsubscriptions;

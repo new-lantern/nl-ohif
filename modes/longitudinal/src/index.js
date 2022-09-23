@@ -10,6 +10,7 @@ const NON_IMAGE_MODALITIES = ['SM', 'ECG', 'SR', 'SEG'];
 const ohif = {
   layout: '@ohif/extension-default.layoutTemplateModule.viewerLayout',
   sopClassHandler: '@ohif/extension-default.sopClassHandlerModule.stack',
+  hangingProtocols: '@ohif/extension-default.hangingProtocolModule.default',
 };
 
 const tracked = {
@@ -102,7 +103,6 @@ function modeFactory() {
         'Pan',
         'Capture',
         'Layout',
-        'MPR',
         'MoreTools',
       ]);
     },
@@ -169,8 +169,7 @@ function modeFactory() {
       },
     ],
     extensions: extensionDependencies,
-    // Default protocol gets self-registered by default in the init
-    hangingProtocol: 'default',
+    hangingProtocols: [ohif.hangingProtocols],
     // Order is important in sop class handlers when two handlers both use
     // the same sop class under different situations.  In that case, the more
     // general handler needs to come last.  For this case, the dicomvideo must
