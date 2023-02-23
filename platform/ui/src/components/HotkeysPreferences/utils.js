@@ -39,10 +39,10 @@ const validate = ({ commandName, pressedKeys, hotkeys }) => {
     });
 
     if (validation && validation.error) {
+      console.log('VERROR', validation);
       return validation;
     }
   }
-
   return { error: undefined };
 };
 
