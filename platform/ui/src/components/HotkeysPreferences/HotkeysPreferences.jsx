@@ -44,6 +44,8 @@ const HotkeysPreferences = ({
       }
     }
     if (firstErrorKey) {
+      // If we change the hotkey that is equal to the current error's tool value, 
+      // we update all errors to take on a new tool value
       const [errorToolName, errorKey] = extractInfoFromError(errors[firstErrorKey]);
       if (
         definition.keys.join('+') !== errorKey &&
