@@ -46,4 +46,22 @@ const validate = ({ commandName, pressedKeys, hotkeys }) => {
   return { error: undefined };
 };
 
-export { validate, splitHotkeyDefinitionsAndCreateTuples };
+/**
+ * Validate a hotkey change
+ *
+ * @param {Object} error {error}
+ * @returns {array} [toolName, key] toolName and key from error
+ */
+const extractInfoFromError = error => {
+  const regex = /"([^"]+)"[^"]+"([^"]+)"/;
+  const match = error.match(regex);
+  if (match !== null) {
+    const toolName = match[1];
+    const key = match[2];
+    return [toolName, key];
+  } else {
+    return null;
+  }
+};
+
+export { validate, splitHotkeyDefinitionsAndCreateTuples, extractInfoFromError };

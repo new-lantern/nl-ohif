@@ -6,7 +6,7 @@ import { HotkeyField, Typography } from '../';
 
 /* TODO: Move these configs and utils to core? */
 import { MODIFIER_KEYS } from './hotkeysConfig';
-import { splitHotkeyDefinitionsAndCreateTuples, validate } from './utils';
+import { extractInfoFromError, splitHotkeyDefinitionsAndCreateTuples, validate } from './utils';
 
 const HotkeysPreferences = ({
   disabled,
@@ -31,18 +31,6 @@ const HotkeysPreferences = ({
     return 'No hotkey definitions';
   }
 
-  const extractInfo = e => {
-    const regex = /"([^"]+)"[^"]+"([^"]+)"/;
-    const match = e.match(regex);
-    if (match !== null) {
-      const toolName = match[1];
-      const key = match[2];
-      return [toolName, key];
-    } else {
-      return null;
-    }
-  };
-
   const onHotkeyChangeHandler = (id, definition) => {
     const { error } = validate({
       commandName: id,
@@ -55,9 +43,8 @@ const HotkeysPreferences = ({
         firstErrorKey = key;
       }
     }
-
     if (firstErrorKey) {
-      const [errorToolName, errorKey] = extractInfo(errors[firstErrorKey]);
+      const [errorToolName, errorKey] = extractInfoFromError(errors[firstErrorKey]);
       if (
         definition.keys.join('+') !== errorKey &&
         definition.label === errorToolName
@@ -72,7 +59,6 @@ const HotkeysPreferences = ({
           }
         });
         delete tmpErrors[firstErrorKey];
-
         setErrors(tmpErrors);
       }
     }
