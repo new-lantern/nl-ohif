@@ -32,38 +32,30 @@ const HotkeysPreferences = ({
   }
 
   const onHotkeyChangeHandler = (id, definition) => {
-    const { error } = validate({
+    if (definition.keys.join("+") === hotkeyDefinitions[id].keys.join("+")) {
+      return
+    }
+
+    let {error, currentErrors} = validate({
       commandName: id,
       pressedKeys: definition.keys,
       hotkeys: hotkeyDefinitions,
+      currentErrors: {currentErrors: errors}
     });
-    let firstErrorKey = undefined;
-    for (let key in errors) {
-      if (errors[key] !== undefined) {
-        firstErrorKey = key;
+    
+    // Make sure new errors are consistent with old errors
+    Object.keys(currentErrors.currentErrors).forEach((key) => {
+      if (error && currentErrors.currentErrors[key]) {
+        const [errorToolName, errorKey] = extractInfoFromError(currentErrors.currentErrors[key]);
+        const [newErrorToolName, newErrorKey] = extractInfoFromError(error);
+        if (newErrorKey === errorKey && newErrorToolName !== errorToolName) {
+          error = error.replace(
+            `"${newErrorToolName}"`,
+            `"${errorToolName}"`
+          );
+        }
       }
-    }
-    if (firstErrorKey) {
-      // If we change the hotkey that is equal to the current error's tool value, 
-      // we update all errors to take on a new tool value
-      const [errorToolName, errorKey] = extractInfoFromError(errors[firstErrorKey]);
-      if (
-        definition.keys.join('+') !== errorKey &&
-        definition.label === errorToolName
-      ) {
-        const tmpErrors = errors;
-        Object.keys(tmpErrors).forEach(e => {
-          if (tmpErrors[e] !== undefined) {
-            tmpErrors[e] = tmpErrors[e].replace(
-              `"${errorToolName}"`,
-              `"${hotkeyDefinitions[firstErrorKey].label}"`
-            );
-          }
-        });
-        delete tmpErrors[firstErrorKey];
-        setErrors(tmpErrors);
-      }
-    }
+    })
 
     setErrors(prevState => {
       const errors = { ...prevState, [id]: error };
