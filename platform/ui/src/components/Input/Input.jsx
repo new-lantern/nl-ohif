@@ -70,7 +70,7 @@ Input.propTypes = {
   readOnly: PropTypes.bool,
   onKeyPress: PropTypes.func,
   onKeyDown: PropTypes.func,
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
 };
 
 export default Input;

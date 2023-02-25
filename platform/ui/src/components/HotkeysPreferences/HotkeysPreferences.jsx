@@ -160,6 +160,7 @@ HotkeysPreferences.propTypes = {
     unpause: PropTypes.func.isRequired,
     startRecording: PropTypes.func.isRequired,
     record: PropTypes.func.isRequired,
+    controlledErrors: PropTypes.object
   }).isRequired,
 };
 

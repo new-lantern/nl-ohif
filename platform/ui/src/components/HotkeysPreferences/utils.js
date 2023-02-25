@@ -99,6 +99,7 @@ const validate = ({ commandName, pressedKeys, hotkeys, currentErrors }) => {
  * @returns {array} [toolName, key] toolName and key from error
  */
 const extractInfoFromError = error => {
+  // Extracts the toolName and keys from the error message by looking inside each set of quotes
   const regex = /"([^"]+)"[^"]+"([^"]+)"/;
   const match = error.match(regex);
   if (match !== null) {
