@@ -86,10 +86,6 @@ module.exports = (env, argv, { SRC_DIR, DIST_DIR }) => {
           __dirname,
           '../node_modules/dom-helpers/class/addClass'
         ),
-        'dom-helpers/removeClass': path.resolve(
-          __dirname,
-          '../node_modules/dom-helpers/class/removeClass'
-        ),
         'react-dates': path.resolve(__dirname, '../node_modules/react-dates'),
         'react-moment-proptypes': path.resolve(
           __dirname,
