@@ -93,7 +93,7 @@ const validate = ({ commandName, pressedKeys, hotkeys, currentErrors }) => {
 };
 
 /**
- * Extract relevant toolName and key data from a validation error
+ * Validate a hotkey change
  *
  * @param {Object} error {error}
  * @returns {array} [toolName, key] toolName and key from error
