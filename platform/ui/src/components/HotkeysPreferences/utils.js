@@ -35,35 +35,42 @@ const removeErrors = (currentErrors, pressedKeys, id, hotkeys) => {
   let newLabel;
   if (Object.keys(currentErrors.currentErrors).length) {
     // First delete the error once we delete the error
-    Object.keys(currentErrors.currentErrors).every((key) => {
+    Object.keys(currentErrors.currentErrors).every(key => {
       if (currentErrors.currentErrors[key]) {
-        const [errorLabel, errorKeys] = extractInfoFromError(currentErrors.currentErrors[key]);
-        if (errorLabel === pressedLabel && pressedKeys.join("+") !== errorKeys) {
-          hotkeys[key]
-          newLabel = hotkeys[key].label
-          currentErrors.currentErrors[key] = undefined
-          return false
+        const [errorLabel, errorKeys] = extractInfoFromError(
+          currentErrors.currentErrors[key]
+        );
+        if (
+          errorLabel === pressedLabel &&
+          pressedKeys.join('+') !== errorKeys
+        ) {
+          hotkeys[key];
+          newLabel = hotkeys[key].label;
+          currentErrors.currentErrors[key] = undefined;
+          return false;
         }
       }
-      return true
-    })
+      return true;
+    });
     // Then we relabel old errors so that all duplicate keys have the same error
-    Object.keys(currentErrors.currentErrors).forEach((key) => {
-      const error = currentErrors.currentErrors[key]
+    Object.keys(currentErrors.currentErrors).forEach(key => {
+      const error = currentErrors.currentErrors[key];
       if (error) {
         const [errorLabel, errorKeys] = extractInfoFromError(error);
-        if (errorLabel === pressedLabel && pressedKeys.join("+") !== errorKeys) { 
-          currentErrors.currentErrors[key] = currentErrors.currentErrors[key].replace(
-            `"${errorLabel}"`,
-            `"${newLabel}"`
-          )
+        if (
+          errorLabel === pressedLabel &&
+          pressedKeys.join('+') !== errorKeys
+        ) {
+          currentErrors.currentErrors[key] = currentErrors.currentErrors[
+            key
+          ].replace(`"${errorLabel}"`, `"${newLabel}"`);
         }
       }
-    })
+    });
   }
-  
-  return {currentErrors: currentErrors}
-}
+
+  return { currentErrors: currentErrors };
+};
 
 /**
  * Validate a hotkey change
@@ -76,17 +83,21 @@ const removeErrors = (currentErrors, pressedKeys, id, hotkeys) => {
  * @returns {Object} {error} validation error
  */
 const validate = ({ commandName, pressedKeys, hotkeys, currentErrors }) => {
-  
-  const updatedErrors = removeErrors(currentErrors, pressedKeys, commandName, hotkeys)
+  const updatedErrors = removeErrors(
+    currentErrors,
+    pressedKeys,
+    commandName,
+    hotkeys
+  );
   for (const validator of hotkeysValidators) {
     const validation = validator({
       commandName,
       pressedKeys,
-      hotkeys
+      hotkeys,
     });
-    
+
     if (validation && validation.error) {
-      return {...validation, ...updatedErrors};
+      return { ...validation, ...updatedErrors };
     }
   }
   return { error: undefined, ...updatedErrors };
@@ -111,4 +122,8 @@ const extractInfoFromError = error => {
   }
 };
 
-export { validate, splitHotkeyDefinitionsAndCreateTuples, extractInfoFromError };
+export {
+  validate,
+  splitHotkeyDefinitionsAndCreateTuples,
+  extractInfoFromError,
+};

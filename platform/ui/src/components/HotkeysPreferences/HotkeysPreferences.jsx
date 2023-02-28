@@ -6,7 +6,11 @@ import { HotkeyField, Typography } from '../';
 
 /* TODO: Move these configs and utils to core? */
 import { MODIFIER_KEYS } from './hotkeysConfig';
-import { extractInfoFromError, splitHotkeyDefinitionsAndCreateTuples, validate } from './utils';
+import {
+  extractInfoFromError,
+  splitHotkeyDefinitionsAndCreateTuples,
+  validate,
+} from './utils';
 
 const HotkeysPreferences = ({
   disabled,
@@ -32,30 +36,29 @@ const HotkeysPreferences = ({
   }
 
   const onHotkeyChangeHandler = (id, definition) => {
-    if (definition.keys.join("+") === hotkeyDefinitions[id].keys.join("+")) {
-      return
+    if (definition.keys.join('+') === hotkeyDefinitions[id].keys.join('+')) {
+      return;
     }
 
-    let {error, currentErrors} = validate({
+    let { error, currentErrors } = validate({
       commandName: id,
       pressedKeys: definition.keys,
       hotkeys: hotkeyDefinitions,
-      currentErrors: {currentErrors: errors}
+      currentErrors: { currentErrors: errors },
     });
-    
+
     // Make sure new errors are consistent with old errors
-    Object.keys(currentErrors.currentErrors).forEach((key) => {
+    Object.keys(currentErrors.currentErrors).forEach(key => {
       if (error && currentErrors.currentErrors[key]) {
-        const [errorToolName, errorKey] = extractInfoFromError(currentErrors.currentErrors[key]);
+        const [errorToolName, errorKey] = extractInfoFromError(
+          currentErrors.currentErrors[key]
+        );
         const [newErrorToolName, newErrorKey] = extractInfoFromError(error);
         if (newErrorKey === errorKey && newErrorToolName !== errorToolName) {
-          error = error.replace(
-            `"${newErrorToolName}"`,
-            `"${errorToolName}"`
-          );
+          error = error.replace(`"${newErrorToolName}"`, `"${errorToolName}"`);
         }
       }
-    })
+    });
 
     setErrors(prevState => {
       const errors = { ...prevState, [id]: error };
@@ -154,13 +157,13 @@ HotkeysPreferences.propTypes = {
   onChange: PropTypes.func,
   disabled: PropTypes.bool,
   hotkeyDefinitions: PropTypes.object.isRequired,
+  errors: PropTypes.object,
   hotkeysModule: PropTypes.shape({
     initialize: PropTypes.func.isRequired,
     pause: PropTypes.func.isRequired,
     unpause: PropTypes.func.isRequired,
     startRecording: PropTypes.func.isRequired,
     record: PropTypes.func.isRequired,
-    controlledErrors: PropTypes.object
   }).isRequired,
 };
 
