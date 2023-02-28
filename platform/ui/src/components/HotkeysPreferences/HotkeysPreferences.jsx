@@ -6,11 +6,7 @@ import { HotkeyField, Typography } from '../';
 
 /* TODO: Move these configs and utils to core? */
 import { MODIFIER_KEYS } from './hotkeysConfig';
-import {
-  extractInfoFromError,
-  splitHotkeyDefinitionsAndCreateTuples,
-  validate,
-} from './utils';
+import { splitHotkeyDefinitionsAndCreateTuples, validate } from './utils';
 
 const HotkeysPreferences = ({
   disabled,
@@ -40,32 +36,52 @@ const HotkeysPreferences = ({
       return;
     }
 
-    let { error, currentErrors } = validate({
+    let {
+      error,
+      currentErrors,
+      keys: conflictingKeys,
+      label: conflictingLabel,
+    } = validate({
       commandName: id,
       pressedKeys: definition.keys,
       hotkeys: hotkeyDefinitions,
       currentErrors: { currentErrors: errors },
     });
 
+    let label;
+    let keys = conflictingKeys ? conflictingKeys.join('+') : undefined;
     // Make sure new errors are consistent with old errors
     Object.keys(currentErrors.currentErrors).forEach(key => {
-      if (error && currentErrors.currentErrors[key]) {
-        const [errorToolName, errorKey] = extractInfoFromError(
-          currentErrors.currentErrors[key]
-        );
-        const [newErrorToolName, newErrorKey] = extractInfoFromError(error);
-        if (newErrorKey === errorKey && newErrorToolName !== errorToolName) {
-          error = error.replace(`"${newErrorToolName}"`, `"${errorToolName}"`);
+      if (error && currentErrors.currentErrors[key]['error']) {
+        const errorToolName = currentErrors.currentErrors[key]['label'];
+        const errorKey = currentErrors.currentErrors[key]['keys'];
+        label = conflictingLabel;
+        if (keys === errorKey && label !== errorToolName) {
+          label = errorToolName;
         }
       }
     });
 
     setErrors(prevState => {
-      const errors = { ...prevState, [id]: error };
+      const errors = {
+        ...prevState,
+        [id]: {
+          error: error,
+          label: label ? label : conflictingLabel,
+          keys: keys ? keys : undefined,
+        },
+      };
       return errors;
     });
 
-    onChange(id, definition, { ...errors, [id]: error });
+    onChange(id, definition, {
+      ...errors,
+      [id]: {
+        error: error,
+        label: label ? label : conflictingLabel,
+        keys: keys ? keys : undefined,
+      },
+    });
   };
 
   return (
@@ -78,7 +94,12 @@ const HotkeysPreferences = ({
                 {hotkeys.map((hotkey, hotkeyIndex) => {
                   const [id, definition] = hotkey;
                   const isFirst = hotkeyIndex === 0;
-                  const error = errors[id];
+                  let error;
+                  if (errors[id] && errors[id]['error']) {
+                    error = errors[id]['error'];
+                    error = error.replace('P1', errors[id]['label']);
+                    error = error.replace('P2', errors[id]['keys']);
+                  }
 
                   const onChangeHandler = keys =>
                     onHotkeyChangeHandler(id, { ...definition, keys });

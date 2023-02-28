@@ -50,7 +50,7 @@ const UserPreferences = ({
   const onHotkeysChangeHandler = (id, definition, errors) => {
     setState(state => ({
       ...state,
-      isDisabled: Object.values(errors).every(e => e !== undefined),
+      isDisabled: Object.values(errors).every(e => e['error'] !== undefined),
       hotkeyErrors: errors,
       hotkeyDefinitions: {
         ...state.hotkeyDefinitions,
