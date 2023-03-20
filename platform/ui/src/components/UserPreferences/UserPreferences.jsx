@@ -3,13 +3,24 @@ import PropTypes from 'prop-types';
 import { Select, Typography, Button, HotkeysPreferences } from '../';
 import { useTranslation } from 'react-i18next';
 
-const UserPreferences = ({ availableLanguages, defaultLanguage, currentLanguage, disabled, hotkeyDefinitions, hotkeyDefaults, onCancel, onSubmit, onReset, hotkeysModule }) => {
+const UserPreferences = ({
+  availableLanguages,
+  defaultLanguage,
+  currentLanguage,
+  disabled,
+  hotkeyDefinitions,
+  hotkeyDefaults,
+  onCancel,
+  onSubmit,
+  onReset,
+  hotkeysModule,
+}) => {
   const { t } = useTranslation('UserPreferencesModal');
   const [state, setState] = useState({
     isDisabled: disabled,
     hotkeyErrors: {},
     hotkeyDefinitions,
-    language: currentLanguage
+    language: currentLanguage,
   });
 
   const onSubmitHandler = () => {
@@ -32,19 +43,19 @@ const UserPreferences = ({ availableLanguages, defaultLanguage, currentLanguage,
     onCancel();
   };
 
-  const onLanguageChangeHandler = (value) => {
+  const onLanguageChangeHandler = value => {
     setState(state => ({ ...state, language: value }));
   };
 
   const onHotkeysChangeHandler = (id, definition, errors) => {
     setState(state => ({
       ...state,
-      isDisabled: Object.values(errors).every(e => e !== undefined),
+      isDisabled: Object.values(errors).every(e => e['error'] !== undefined),
       hotkeyErrors: errors,
       hotkeyDefinitions: {
         ...state.hotkeyDefinitions,
         [id]: definition,
-      }
+      },
     }));
   };
 
@@ -58,9 +69,7 @@ const UserPreferences = ({ availableLanguages, defaultLanguage, currentLanguage,
           {title}
         </Typography>
       </div>
-      <div className="mt-4 mb-8">
-        {children}
-      </div>
+      <div className="mt-4 mb-8">{children}</div>
     </>
   );
 
@@ -111,7 +120,7 @@ const UserPreferences = ({ availableLanguages, defaultLanguage, currentLanguage,
   );
 };
 
-const noop = () => { };
+const noop = () => {};
 
 UserPreferences.propTypes = {
   disabled: PropTypes.bool,
@@ -132,7 +141,7 @@ UserPreferences.propTypes = {
     unpause: PropTypes.func.isRequired,
     startRecording: PropTypes.func.isRequired,
     record: PropTypes.func.isRequired,
-  }).isRequired
+  }).isRequired,
 };
 
 UserPreferences.defaultProps = {
@@ -143,7 +152,7 @@ UserPreferences.defaultProps = {
   onCancel: noop,
   onSubmit: noop,
   onReset: noop,
-  disabled: false
+  disabled: false,
 };
 
 export default UserPreferences;

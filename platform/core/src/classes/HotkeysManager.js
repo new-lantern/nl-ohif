@@ -1,5 +1,4 @@
 import objectHash from 'object-hash';
-import log from './../log.js';
 import { hotkeys, nlApi } from '../utils';
 
 import measurementTools from '../../../../extensions/cornerstone/src/utils/measurementServiceMappings/constants/supportedTools';

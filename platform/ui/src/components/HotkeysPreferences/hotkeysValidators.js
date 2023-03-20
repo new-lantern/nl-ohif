@@ -28,8 +28,6 @@ const ERROR_MESSAGES = {
   EMPTY: "Field can't be empty.",
 };
 
-// VALIDATORS
-
 const modifierValidator = ({ pressedKeys }) => {
   const lastPressedKey = pressedKeys[pressedKeys.length - 1];
   // Check if it has a valid modifier
@@ -54,7 +52,9 @@ const conflictingValidator = ({ commandName, pressedKeys, hotkeys }) => {
 
   if (conflictingCommand) {
     return {
-      error: `"${conflictingCommand.label}" is already using the "${pressedKeys}" shortcut.`,
+      error: `"P1" is already using the "P2" shortcut.`,
+      keys: pressedKeys,
+      label: conflictingCommand.label,
     };
   }
 };
@@ -72,7 +72,10 @@ const disallowedValidator = ({ pressedKeys = [] }) => {
 
   if (hasDisallowedCombinations) {
     return {
-      error: `"${formatPressedKeys(pressedKeys)}" shortcut combination is not allowed`,
+      error: `"${formatPressedKeys(
+        pressedKeys
+      )}" shortcut combination is not allowed`,
+      keys: formatPressedKeys(pressedKeys),
     };
   }
 };
