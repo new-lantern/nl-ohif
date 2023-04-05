@@ -103,6 +103,14 @@ module.exports = (env, argv, { SRC_DIR, DIST_DIR }) => {
           __dirname,
           '../platform/viewer/node_modules/react-router'
         ),
+        '@material-ui/pickers': path.resolve(
+          __dirname,
+          '../node_modules/material-table/node_modules/@material-ui/pickers'
+        ),
+        '@date-io/date-fns': path.resolve(
+          __dirname,
+          '../node_modules/material-table/node_modules/@date-io/date-fns'
+        )
       },
       // Which directories to search when resolving modules
       modules: [
