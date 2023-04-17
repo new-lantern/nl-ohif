@@ -74,6 +74,7 @@ import notificationsSuccess from './../../assets/icons/notifications-success.svg
 /** Tools */
 import toolZoom from './../../assets/icons/tool-zoom.svg';
 import toolCapture from './../../assets/icons/tool-capture.svg';
+import toolCrosshairMPR from './../../assets/icons/tool-crosshair-mpr.svg';
 import toolLayout from './../../assets/icons/tool-layout.svg';
 import toolMore from './../../assets/icons/tool-more-menu.svg';
 import toolMove from './../../assets/icons/tool-move.svg';
@@ -192,6 +193,7 @@ const ICONS = {
   /** Tools */
   'tool-zoom': toolZoom,
   'tool-capture': toolCapture,
+  'tool-crosshair-mpr': toolCrosshairMPR,
   'tool-layout': toolLayout,
   'tool-more-menu': toolMore,
   'tool-move': toolMove,
