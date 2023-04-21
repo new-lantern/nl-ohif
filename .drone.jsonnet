@@ -55,7 +55,7 @@ local deployV3 = pipelineCommon {
         'yarn prepare',
         'sh package_gen.sh',
         'cd dist',
-        'npm version patch',
+        // 'npm version patch',
         'echo "//registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN" > ~/.npmrc',
         'yarn publish',
       ],
