@@ -30,7 +30,39 @@ local slackDeployMessage = {
   },
 };
 
-
+local deployV3 = pipelineCommon {
+  trigger: {
+    branch: [
+      'feat/nl-v3-stable',
+    ],
+    event: [
+      'push',
+    ],
+  },
+  steps: [
+    jsStepCommon {
+      name: 'deploy-v3',
+      environment: {
+        NPM_AUTH_TOKEN: {
+          from_secret: 'NPM_AUTH_TOKEN',
+        },
+      },
+      commands: [
+        'git clone -b v3-stable --single-branch https://github.com/new-lantern/nl-ohif-modules',
+        'cd nl-ohif-modules/viewer',
+        'yarn',
+        'rm dist -r',
+        'yarn prepare',
+        'sh package_gen.sh',
+        'cd dist',
+        'npm version patch',
+        'echo "//registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN" > ~/.npmrc',
+        'yarn publish',
+      ],
+    },
+    slackDeployMessage,
+  ],
+};
 
 local deployProduction = pipelineCommon {
   trigger: {
@@ -68,5 +100,6 @@ local deployProduction = pipelineCommon {
 
 
 [
+  deployV3,
   deployProduction,
 ]
