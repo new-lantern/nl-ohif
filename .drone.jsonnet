@@ -31,6 +31,7 @@ local slackDeployMessage = {
 };
 
 local deployV3 = pipelineCommon {
+  name: 'deploy-v3',
   trigger: {
     branch: [
       'feat/nl-v3-stable',
@@ -65,6 +66,7 @@ local deployV3 = pipelineCommon {
 };
 
 local deployProduction = pipelineCommon {
+  name: 'deploy-production',
   trigger: {
     branch: [
       'feat/nl-dev',
