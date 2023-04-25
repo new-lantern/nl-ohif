@@ -1,6 +1,9 @@
 #!/bin/sh
 
-VERSION=$(npm view @newlantern/viewer version)
+# We first get the version history below 5.0.0, then
+# use jq to get the lastest version and finally
+# trim the quotes from the version number
+VERSION=$(npm show @newlantern/viewer@"^4.0.0" version --json | jq last | tr -d '"')
 
 if [ -z "$NAME" ]
 then
