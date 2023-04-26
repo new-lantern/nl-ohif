@@ -84,8 +84,8 @@ local deployProduction = pipelineCommon {
         },
       },
       commands: [
-        'sudo apk update',
-        'sudo apk add jq',
+        'apk update',
+        'apk add jq',
         'cd platform/viewer',
         'yarn',
         'rm dist -r',
