@@ -17,12 +17,18 @@ const MeasurementItem = ({
   isActive,
   onClick,
   onEdit,
+  onDelete,
 }) => {
   const [isHovering, setIsHovering] = useState(false);
 
   const onEditHandler = event => {
     event.stopPropagation();
     onEdit({ id, isActive, event });
+  };
+
+  const onDeleteHandler = event => {
+    event.stopPropagation();
+    onDelete({ id, isActive, event });
   };
 
   const onClickHandler = event => onClick({ id, isActive, event });
@@ -82,6 +88,20 @@ const MeasurementItem = ({
             }}
             onClick={onEditHandler}
           />
+          <Icon
+            className={classnames(
+              'text-white w-3 absolute cursor-pointer transition duration-300',
+              { 'invisible opacity-0 mr-2': !isActive && !isHovering },
+              { 'visible opacity-1': !isActive && isHovering }
+            )}
+            name="old-trash"
+            style={{
+              bottom: 4,
+              right: 6,
+              transform: isActive || isHovering ? '' : 'translateX(100%)',
+            }}
+            onClick={onDeleteHandler}
+          />
         </div>
         <Tooltip
           content={
@@ -124,6 +144,7 @@ MeasurementItem.propTypes = {
   isActive: PropTypes.bool,
   onClick: PropTypes.func,
   onEdit: PropTypes.func,
+  onDelete: PropTypes.func,
 };
 
 MeasurementItem.defaultProps = {

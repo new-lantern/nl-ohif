@@ -1,3 +1,4 @@
+import cs from 'cornerstone-core';
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -237,6 +238,79 @@ function PanelMeasurementTableTracking({ servicesManager, extensionManager }) {
     });
   };
 
+  const onMeasurementItemDeleteHandler = ({ id, isActive }) => {
+    const measurement = MeasurementService.getMeasurement(id);
+    const { name, version } = measurement.source;
+    const measurementServiceSource = MeasurementService.getSource(
+      name,
+      version
+    );
+    jumpToImage({ id, isActive });
+
+    UIDialogService.create({
+      id: 'ds-delete-measurement',
+      centralize: true,
+      isDraggable: false,
+      showOverlay: true,
+      content: Dialog,
+      contentProps: {
+        title: 'Delete Measurement',
+        body: () => (
+          <div className="p-4 text-white bg-primary-dark">
+            <p>Are you sure you want to delete this measurement?</p>
+            <p>This action cannot be undone.</p>
+          </div>
+        ),
+        actions: [
+          { id: 'cancel', text: 'Cancel', type: 'secondary' },
+          {
+            id: 'yes',
+            text: 'Yes',
+            type: 'primary',
+            classes: ['reject-yes-button'],
+          },
+        ],
+        onClose: () => UIDialogService.dismiss({ id: 'ds-delete-measurement' }),
+        onShow: () => {
+          const yesButton = document.querySelector('.reject-yes-button');
+
+          yesButton.focus();
+        },
+        onSubmit: async ({ action }) => {
+          switch (action.id) {
+            case 'yes':
+              try {
+                await nlApi.delete(`/api/measurement/${id}`);
+                measurementServiceSource.remove(id);
+
+                cs.getEnabledElements().forEach(({ element }) =>
+                  cs.updateImage(element)
+                );
+
+                UIDialogService.dismiss({ id: 'ds-delete-measurement' });
+                UINotificationService.show({
+                  title: 'Delete Measurement',
+                  message: 'Measurement deleted successfully',
+                  type: 'success',
+                });
+              } catch (error) {
+                UIDialogService.dismiss({ id: 'ds-delete-measurement' });
+                UINotificationService.show({
+                  title: 'Delete Report',
+                  message: 'Failed to delete report',
+                  type: 'error',
+                });
+              }
+              break;
+            case 'cancel':
+              UIDialogService.dismiss({ id: 'ds-delete-measurement' });
+              break;
+          }
+        },
+      },
+    });
+  };
+
   const onMeasurementItemClickHandler = ({ id, isActive }) => {
     if (!isActive) {
       const measurements = [...displayMeasurements];
@@ -274,6 +348,7 @@ function PanelMeasurementTableTracking({ servicesManager, extensionManager }) {
           data={displayMeasurementsWithoutFindings}
           onClick={jumpToImage}
           onEdit={onMeasurementItemEditHandler}
+          onDelete={onMeasurementItemDeleteHandler}
         />
         {additionalFindings.length !== 0 && (
           <MeasurementTable
@@ -282,6 +357,7 @@ function PanelMeasurementTableTracking({ servicesManager, extensionManager }) {
             data={additionalFindings}
             onClick={jumpToImage}
             onEdit={onMeasurementItemEditHandler}
+            onDelete={onMeasurementItemDeleteHandler}
           />
         )}
       </div>
