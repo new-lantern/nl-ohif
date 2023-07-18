@@ -338,6 +338,23 @@ const commandsModule = ({
      * Changes the viewport grid layout in terms of the MxN layout.
      */
     setViewportGridLayout: ({ numRows, numCols }) => {
+      const activeToolIds = toolbarService.getActiveTools();
+      if (activeToolIds.includes('ReferenceLines')) {
+        toolbarService.recordInteraction({
+          itemId: 'ReferenceLines',
+          interactionType: 'toggle',
+          commands: [
+            {
+              commandName: 'toggleReferenceLines',
+              commandOptions: {
+                toggledState: false,
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+        });
+      }
+
       const { protocol } = hangingProtocolService.getActiveProtocol();
       const onLayoutChange = protocol.callbacks?.onLayoutChange;
       if (commandsManager.run(onLayoutChange, { numRows, numCols }) === false) {

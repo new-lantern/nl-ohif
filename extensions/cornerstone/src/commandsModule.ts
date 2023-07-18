@@ -601,6 +601,7 @@ function commandsModule({ servicesManager, commandsManager }) {
 
       if (!toggledState) {
         toolGroup.setToolDisabled(ReferenceLinesTool.toolName);
+        return;
       }
 
       toolGroup.setToolConfiguration(
