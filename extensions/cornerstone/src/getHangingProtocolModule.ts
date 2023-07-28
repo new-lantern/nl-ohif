@@ -21,23 +21,6 @@ const mpr: Types.HangingProtocol.Protocol = {
         context: 'DEFAULT',
       },
     ],
-    // Turns off crosshairs when switching out of MPR mode
-    onProtocolExit: [
-      {
-        commandName: 'toolbarServiceRecordInteraction',
-        commandOptions: {
-          interactionType: 'tool',
-          commands: [
-            {
-              commandOptions: {
-                toolName: 'WindowLevel',
-              },
-              context: 'CORNERSTONE',
-            },
-          ],
-        },
-      },
-    ],
   },
   displaySetSelectors: {
     activeDisplaySet: {
