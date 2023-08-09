@@ -27,6 +27,8 @@ import interleaveTopToBottom from './utils/interleaveTopToBottom';
 import initContextMenu from './initContextMenu';
 import initDoubleClick from './initDoubleClick';
 
+import { enable as stackPrefetchEnable } from '@newlantern/extension-default/src/stackPrefetch/stackPrefetch';
+
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
 window.cornerstoneTools = cornerstoneTools;
@@ -38,6 +40,7 @@ export default async function init({
   commandsManager,
   configuration,
   appConfig,
+  extensionManager,
 }: Types.Extensions.ExtensionParams): Promise<void> {
   await cs3DInit();
 
@@ -218,9 +221,62 @@ export default async function init({
     commandsManager,
   });
 
+  const viewportsStackLoaded: Map<string, boolean> = new Map();
+
   const newStackCallback = evt => {
-    const { element } = evt.detail;
-    utilities.stackPrefetch.enable(element);
+    const { viewportId } = evt.detail;
+
+    viewportsStackLoaded.set(viewportId, true);
+
+    const viewportIds = cornerstoneViewportService.getViewportIds();
+
+    for (let i = 0; i < viewportIds.length; i++) {
+      if (viewportsStackLoaded.get(viewportIds[i]) !== true) {
+        return;
+      }
+    }
+
+    const stacks: any[] = [];
+
+    viewportIds.forEach(viewportId => {
+      const viewportInfo = cornerstoneViewportService.getViewportInfo(
+        viewportId
+      );
+
+      const {
+        displaySetInstanceUID,
+        imageIds,
+      } = viewportInfo.viewportData.data;
+
+      stacks.push({
+        uid: displaySetInstanceUID,
+        imageIds,
+      });
+    });
+
+    const viewportInfo = cornerstoneViewportService.getViewportInfo(
+      viewportIds[0]
+    );
+
+    const { StudyInstanceUID } = viewportInfo.viewportData.data;
+
+    const dataSource = extensionManager.getActiveDataSource()[0];
+    displaySetService
+      .getActiveDisplaySets()
+      .filter(ds => ds.StudyInstanceUID === StudyInstanceUID)
+      .sort((a, b) => a.SeriesNumber - b.SeriesNumber)
+      .filter(
+        ds => !stacks.some(stack => stack.uid === ds.displaySetInstanceUID)
+      )
+      .forEach((displaySet, index) => {
+        const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
+        stacks.push({
+          uid: displaySet.displaySetInstanceUID,
+          imageIds,
+        });
+      });
+
+    stacks.forEach(stack => stackPrefetchEnable(stack));
   };
 
   const resetCrosshairs = evt => {
