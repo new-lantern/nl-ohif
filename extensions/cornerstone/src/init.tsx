@@ -27,7 +27,10 @@ import interleaveTopToBottom from './utils/interleaveTopToBottom';
 import initContextMenu from './initContextMenu';
 import initDoubleClick from './initDoubleClick';
 
-import { enable as stackPrefetchEnable } from '@newlantern/extension-default/src/stackPrefetch/stackPrefetch';
+import {
+  enable as stackPrefetchEnable,
+  disable as stackPrefetchDisable,
+} from '@newlantern/extension-default/src/stackPrefetch/stackPrefetch';
 
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
@@ -221,62 +224,16 @@ export default async function init({
     commandsManager,
   });
 
-  const viewportsStackLoaded: Map<string, boolean> = new Map();
-
+  let priorityCounter = -1;
   const newStackCallback = evt => {
-    const { viewportId } = evt.detail;
+    const { imageIds } = evt.detail;
 
-    viewportsStackLoaded.set(viewportId, true);
-
-    const viewportIds = cornerstoneViewportService.getViewportIds();
-
-    for (let i = 0; i < viewportIds.length; i++) {
-      if (viewportsStackLoaded.get(viewportIds[i]) !== true) {
-        return;
-      }
-    }
-
-    const stacks: any[] = [];
-
-    viewportIds.forEach(viewportId => {
-      const viewportInfo = cornerstoneViewportService.getViewportInfo(
-        viewportId
-      );
-
-      const {
-        displaySetInstanceUID,
-        imageIds,
-      } = viewportInfo.viewportData.data;
-
-      stacks.push({
-        uid: displaySetInstanceUID,
-        imageIds,
-      });
+    stackPrefetchEnable({
+      uid: `prefetch-stack-${priorityCounter}`,
+      imageIds,
+      priority: priorityCounter,
     });
-
-    const viewportInfo = cornerstoneViewportService.getViewportInfo(
-      viewportIds[0]
-    );
-
-    const { StudyInstanceUID } = viewportInfo.viewportData.data;
-
-    const dataSource = extensionManager.getActiveDataSource()[0];
-    displaySetService
-      .getActiveDisplaySets()
-      .filter(ds => ds.StudyInstanceUID === StudyInstanceUID)
-      .sort((a, b) => a.SeriesNumber - b.SeriesNumber)
-      .filter(
-        ds => !stacks.some(stack => stack.uid === ds.displaySetInstanceUID)
-      )
-      .forEach((displaySet, index) => {
-        const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
-        stacks.push({
-          uid: displaySet.displaySetInstanceUID,
-          imageIds,
-        });
-      });
-
-    stacks.forEach(stack => stackPrefetchEnable(stack));
+    priorityCounter--;
   };
 
   const resetCrosshairs = evt => {
@@ -305,7 +262,73 @@ export default async function init({
     }
   };
 
+  let enabledElementsCount = 0;
+  let STUDY_STACKS = [];
+
   function elementEnabledHandler(evt) {
+    enabledElementsCount++;
+    if (enabledElementsCount === cornerstone.getEnabledElements().length) {
+      console.log('All elements are enabled. Start prefetching images.');
+
+      const dataSource = extensionManager.getActiveDataSource()[0];
+      const { viewports } = viewportGridService.getState();
+
+      // viewports.forEach(viewport => {
+      //   viewport.displaySetInstanceUIDs.forEach(displaySetInstanceUID => {
+      //     const displaySet = displaySetService.getDisplaySetByUID(
+      //       displaySetInstanceUID
+      //     );
+      //     const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
+      //     if (
+      //       !STUDY_STACKS.find(stack => stack.uid === displaySetInstanceUID)
+      //     ) {
+      //       STUDY_STACKS.push({
+      //         uid: displaySetInstanceUID,
+      //         imageIds,
+      //       });
+      //     }
+      //   });
+      // });
+
+      const viewportDisplaySetIds = [];
+      viewports.forEach(viewport => {
+        viewport.displaySetInstanceUIDs.forEach(displaySetInstanceUID => {
+          viewportDisplaySetIds.push(displaySetInstanceUID);
+        });
+      });
+
+      const displaySet = displaySetService.getDisplaySetByUID(
+        viewports[0].displaySetInstanceUIDs[0]
+      );
+      const { StudyInstanceUID } = displaySet;
+
+      displaySetService
+        .getActiveDisplaySets()
+        .filter(
+          ds =>
+            ds.StudyInstanceUID === StudyInstanceUID &&
+            !viewportDisplaySetIds.includes(ds.displaySetInstanceUID)
+        )
+        .sort((a, b) => a.SeriesNumber - b.SeriesNumber)
+        .filter(
+          ds =>
+            !STUDY_STACKS.some(stack => stack.uid === ds.displaySetInstanceUID)
+        )
+        .forEach((displaySet, index) => {
+          const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
+          STUDY_STACKS.push({
+            uid: displaySet.displaySetInstanceUID,
+            imageIds,
+          });
+        });
+
+      STUDY_STACKS.forEach(stack => stackPrefetchEnable(stack));
+
+      eventTarget.removeEventListener(
+        EVENTS.ELEMENT_ENABLED,
+        elementEnabledHandler
+      );
+    }
     const { element } = evt.detail;
     element.addEventListener(EVENTS.CAMERA_RESET, resetCrosshairs);
 
@@ -325,12 +348,12 @@ export default async function init({
     //   EVENTS.STACK_VIEWPORT_NEW_STACK,
     //   newStackCallback
     // );
+
+    STUDY_STACKS = [];
+    enabledElementsCount = 0;
   }
 
-  eventTarget.addEventListener(
-    EVENTS.ELEMENT_ENABLED,
-    elementEnabledHandler.bind(null)
-  );
+  eventTarget.addEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
 
   eventTarget.addEventListener(
     EVENTS.ELEMENT_DISABLED,
