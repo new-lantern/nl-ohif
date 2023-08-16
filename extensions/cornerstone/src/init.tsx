@@ -27,10 +27,7 @@ import interleaveTopToBottom from './utils/interleaveTopToBottom';
 import initContextMenu from './initContextMenu';
 import initDoubleClick from './initDoubleClick';
 
-import {
-  enable as stackPrefetchEnable,
-  disable as stackPrefetchDisable,
-} from '@newlantern/extension-default/src/stackPrefetch/stackPrefetch';
+import * as stackPrefetch from '@newlantern/extension-default/src/stackPrefetch';
 
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
@@ -41,9 +38,9 @@ window.cornerstoneTools = cornerstoneTools;
 export default async function init({
   servicesManager,
   commandsManager,
+  extensionManager,
   configuration,
   appConfig,
-  extensionManager,
 }: Types.Extensions.ExtensionParams): Promise<void> {
   await cs3DInit();
 
@@ -224,16 +221,13 @@ export default async function init({
     commandsManager,
   });
 
-  let priorityCounter = -1;
-  const newStackCallback = evt => {
-    const { imageIds } = evt.detail;
+  let priorityCounter = -100;
 
-    stackPrefetchEnable({
-      uid: `prefetch-stack-${priorityCounter}`,
-      imageIds,
-      priority: priorityCounter,
-    });
-    priorityCounter--;
+  const newStackCallback = evt => {
+    const { element, imageIds } = evt.detail;
+    // utilities.stackPrefetch.enable(element);
+    const { viewportId } = cornerstone.getEnabledElement(element);
+    stackPrefetch.enable({ uid: viewportId, imageIds }, priorityCounter--);
   };
 
   const resetCrosshairs = evt => {
@@ -262,33 +256,14 @@ export default async function init({
     }
   };
 
-  let enabledElementsCount = 0;
+  let enabledElementCounter = 0;
   let STUDY_STACKS = [];
 
   function elementEnabledHandler(evt) {
-    enabledElementsCount++;
-    if (enabledElementsCount === cornerstone.getEnabledElements().length) {
-      console.log('All elements are enabled. Start prefetching images.');
-
+    enabledElementCounter++;
+    if (enabledElementCounter === cornerstone.getEnabledElements().length) {
       const dataSource = extensionManager.getActiveDataSource()[0];
       const { viewports } = viewportGridService.getState();
-
-      // viewports.forEach(viewport => {
-      //   viewport.displaySetInstanceUIDs.forEach(displaySetInstanceUID => {
-      //     const displaySet = displaySetService.getDisplaySetByUID(
-      //       displaySetInstanceUID
-      //     );
-      //     const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
-      //     if (
-      //       !STUDY_STACKS.find(stack => stack.uid === displaySetInstanceUID)
-      //     ) {
-      //       STUDY_STACKS.push({
-      //         uid: displaySetInstanceUID,
-      //         imageIds,
-      //       });
-      //     }
-      //   });
-      // });
 
       const viewportDisplaySetIds = [];
       viewports.forEach(viewport => {
@@ -322,7 +297,10 @@ export default async function init({
           });
         });
 
-      STUDY_STACKS.forEach(stack => stackPrefetchEnable(stack));
+      setTimeout(() => {
+        console.log('All elements are enabled. Start prefetching images.');
+        STUDY_STACKS.forEach(stack => stackPrefetch.enable(stack, 0));
+      }, 2000);
 
       eventTarget.removeEventListener(
         EVENTS.ELEMENT_ENABLED,
@@ -349,16 +327,13 @@ export default async function init({
     //   newStackCallback
     // );
 
+    enabledElementCounter = 0;
     STUDY_STACKS = [];
-    enabledElementsCount = 0;
   }
 
   eventTarget.addEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
 
-  eventTarget.addEventListener(
-    EVENTS.ELEMENT_DISABLED,
-    elementDisabledHandler.bind(null)
-  );
+  eventTarget.addEventListener(EVENTS.ELEMENT_DISABLED, elementDisabledHandler);
 
   viewportGridService.subscribe(
     viewportGridService.EVENTS.ACTIVE_VIEWPORT_INDEX_CHANGED,
