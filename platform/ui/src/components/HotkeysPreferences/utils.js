@@ -22,8 +22,6 @@ const splitHotkeyDefinitionsAndCreateTuples = hotkeyDefinitions => {
     return 0;
   });
 
-  console.log(arrayHotkeys);
-
   if (arrayHotkeys.length) {
     const halfwayThrough = Math.ceil(arrayHotkeys.length / 2);
     splitedHotkeys.push(arrayHotkeys.slice(0, halfwayThrough));
