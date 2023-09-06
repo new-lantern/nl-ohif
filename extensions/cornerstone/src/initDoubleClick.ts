@@ -6,10 +6,10 @@ import { findNearbyToolData } from './utils/findNearbyToolData';
 const cs3DToolsEvents = Enums.Events;
 
 const DEFAULT_DOUBLE_CLICK = {
-  doubleClick: {
-    commandName: 'toggleOneUp',
-    commandOptions: {},
-  },
+  // doubleClick: {
+  //   commandName: 'toggleOneUp',
+  //   commandOptions: {},
+  // },
 };
 
 /**
