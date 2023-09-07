@@ -601,16 +601,17 @@ function commandsModule({ servicesManager, commandsManager }) {
 
       if (!toggledState) {
         toolGroup.setToolDisabled(ReferenceLinesTool.toolName);
-      }
+      } else {
+        toolGroup.setToolConfiguration(
+          ReferenceLinesTool.toolName,
+          {
+            sourceViewportId: viewportId,
+          },
+          true // overwrite
+        );
 
-      toolGroup.setToolConfiguration(
-        ReferenceLinesTool.toolName,
-        {
-          sourceViewportId: viewportId,
-        },
-        true // overwrite
-      );
-      toolGroup.setToolEnabled(ReferenceLinesTool.toolName);
+        toolGroup.setToolEnabled(ReferenceLinesTool.toolName);
+      }
     },
   };
 
