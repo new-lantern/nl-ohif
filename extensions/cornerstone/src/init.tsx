@@ -27,6 +27,8 @@ import interleaveTopToBottom from './utils/interleaveTopToBottom';
 import initContextMenu from './initContextMenu';
 import initDoubleClick from './initDoubleClick';
 
+import * as stackPrefetch from '@newlantern/extension-default/src/stackPrefetch';
+
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
 window.cornerstoneTools = cornerstoneTools;
@@ -36,6 +38,7 @@ window.cornerstoneTools = cornerstoneTools;
 export default async function init({
   servicesManager,
   commandsManager,
+  extensionManager,
   configuration,
   appConfig,
 }: Types.Extensions.ExtensionParams): Promise<void> {
@@ -218,9 +221,13 @@ export default async function init({
     commandsManager,
   });
 
+  let priorityCounter = -100;
+
   const newStackCallback = evt => {
-    const { element } = evt.detail;
-    utilities.stackPrefetch.enable(element);
+    const { element, imageIds } = evt.detail;
+    // utilities.stackPrefetch.enable(element);
+    const { viewportId } = cornerstone.getEnabledElement(element);
+    stackPrefetch.enable({ uid: viewportId, imageIds }, priorityCounter--);
   };
 
   const resetCrosshairs = evt => {
@@ -249,7 +256,57 @@ export default async function init({
     }
   };
 
+  let enabledElementCounter = 0;
+  let STUDY_STACKS = [];
+
   function elementEnabledHandler(evt) {
+    enabledElementCounter++;
+    if (enabledElementCounter === cornerstone.getEnabledElements().length) {
+      const dataSource = extensionManager.getActiveDataSource()[0];
+      const { viewports } = viewportGridService.getState();
+
+      const viewportDisplaySetIds = [];
+      viewports.forEach(viewport => {
+        viewport.displaySetInstanceUIDs.forEach(displaySetInstanceUID => {
+          viewportDisplaySetIds.push(displaySetInstanceUID);
+        });
+      });
+
+      const displaySet = displaySetService.getDisplaySetByUID(
+        viewports[0].displaySetInstanceUIDs[0]
+      );
+      const { StudyInstanceUID } = displaySet;
+
+      displaySetService
+        .getActiveDisplaySets()
+        .filter(
+          ds =>
+            ds.StudyInstanceUID === StudyInstanceUID &&
+            !viewportDisplaySetIds.includes(ds.displaySetInstanceUID)
+        )
+        .sort((a, b) => a.SeriesNumber - b.SeriesNumber)
+        .filter(
+          ds =>
+            !STUDY_STACKS.some(stack => stack.uid === ds.displaySetInstanceUID)
+        )
+        .forEach((displaySet, index) => {
+          const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
+          STUDY_STACKS.push({
+            uid: displaySet.displaySetInstanceUID,
+            imageIds,
+          });
+        });
+
+      setTimeout(() => {
+        console.log('All elements are enabled. Start prefetching images.');
+        STUDY_STACKS.forEach(stack => stackPrefetch.enable(stack, 0));
+      }, 2000);
+
+      eventTarget.removeEventListener(
+        EVENTS.ELEMENT_ENABLED,
+        elementEnabledHandler
+      );
+    }
     const { element } = evt.detail;
     element.addEventListener(EVENTS.CAMERA_RESET, resetCrosshairs);
 
@@ -269,17 +326,14 @@ export default async function init({
     //   EVENTS.STACK_VIEWPORT_NEW_STACK,
     //   newStackCallback
     // );
+
+    enabledElementCounter = 0;
+    STUDY_STACKS = [];
   }
 
-  eventTarget.addEventListener(
-    EVENTS.ELEMENT_ENABLED,
-    elementEnabledHandler.bind(null)
-  );
+  eventTarget.addEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
 
-  eventTarget.addEventListener(
-    EVENTS.ELEMENT_DISABLED,
-    elementDisabledHandler.bind(null)
-  );
+  eventTarget.addEventListener(EVENTS.ELEMENT_DISABLED, elementDisabledHandler);
 
   viewportGridService.subscribe(
     viewportGridService.EVENTS.ACTIVE_VIEWPORT_INDEX_CHANGED,
