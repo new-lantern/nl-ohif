@@ -26,8 +26,9 @@ import nthLoader from './utils/nthLoader';
 import interleaveTopToBottom from './utils/interleaveTopToBottom';
 import initContextMenu from './initContextMenu';
 import initDoubleClick from './initDoubleClick';
+import { stackPrefetch } from '@cornerstonejs/tools/dist/esm/utilities';
 
-import * as stackPrefetch from '@newlantern/extension-default/src/stackPrefetch';
+// import * as stackPrefetch from '@newlantern/extension-default/src/stackPrefetch';
 
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
