@@ -82,6 +82,7 @@ class CornerstoneViewportService extends PubSubService
     }
     const { viewportId } = viewportOptions;
     const viewportInfo = new ViewportInfo(viewportIndex, viewportId);
+
     if (!viewportInfo.viewportId) {
       throw new Error('Should have viewport ID afterwards');
     }

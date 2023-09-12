@@ -106,6 +106,7 @@ class ViewportGridService extends PubSubService {
       activeViewportIndex,
       findOrCreateViewport,
     });
+
     this._broadcastEvent(this.EVENTS.LAYOUT_CHANGED, {
       numCols,
       numRows,

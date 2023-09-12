@@ -111,12 +111,12 @@ export default class ProtocolEngine {
    */
   findMatchByStudy(study, options) {
     const matched = [];
-
     this.protocols.forEach(protocol => {
       // Clone the protocol's protocolMatchingRules array
       // We clone it so that we don't accidentally add the
       // numberOfPriorsReferenced rule to the Protocol itself.
       let rules = protocol.protocolMatchingRules.slice();
+
       if (!rules || !rules.length) {
         console.warn(
           'ProtocolEngine::findMatchByStudy no matching rules - specify protocolMatchingRules for',

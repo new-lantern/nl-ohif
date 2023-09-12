@@ -179,6 +179,8 @@ const commandsModule = ({
         const {
           protocol: oldProtocol,
         } = hangingProtocolService.getActiveProtocol();
+        console.log('OLD PROTOCOL');
+        console.log(oldProtocol);
         const stateSyncReduce = reuseCachedLayouts(
           state,
           hangingProtocolService,
