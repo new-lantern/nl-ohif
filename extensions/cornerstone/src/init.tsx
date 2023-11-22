@@ -325,10 +325,10 @@ export default async function init({
           });
         });
 
-      setTimeout(() => {
-        console.log('All elements are enabled. Start prefetching images.');
-        STUDY_STACKS.forEach(stack => stackPrefetch.enable(stack, 0));
-      }, 2000);
+      // setTimeout(() => {
+      //   console.log('All elements are enabled. Start prefetching images.');
+      //   STUDY_STACKS.forEach(stack => stackPrefetch.enable(stack, 0));
+      // }, 2000);
 
       eventTarget.removeEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
     }
