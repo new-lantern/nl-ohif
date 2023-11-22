@@ -290,48 +290,48 @@ export default async function init({
 
   function elementEnabledHandler(evt) {
     enabledElementCounter++;
-    if (enabledElementCounter === cornerstone.getEnabledElements().length) {
-      const dataSource = extensionManager.getActiveDataSource()[0];
-      const { viewports } = viewportGridService.getState();
+    // if (enabledElementCounter === cornerstone.getEnabledElements().length) {
+    //   const dataSource = extensionManager.getActiveDataSource()[0];
+    //   const { viewports } = viewportGridService.getState();
 
-      const viewportDisplaySetIds = [];
-      viewports.forEach(viewport => {
-        viewport.displaySetInstanceUIDs.forEach(displaySetInstanceUID => {
-          viewportDisplaySetIds.push(displaySetInstanceUID);
-        });
-      });
+    //   const viewportDisplaySetIds = [];
+    //   viewports.forEach(viewport => {
+    //     viewport.displaySetInstanceUIDs.forEach(displaySetInstanceUID => {
+    //       viewportDisplaySetIds.push(displaySetInstanceUID);
+    //     });
+    //   });
 
-      const viewportInfos = Array.from(viewports.values());
+    //   const viewportInfos = Array.from(viewports.values());
 
-      const displaySet = displaySetService.getDisplaySetByUID(
-        viewportInfos[0].displaySetInstanceUIDs[0]
-      );
-      const { StudyInstanceUID } = displaySet;
+    //   const displaySet = displaySetService.getDisplaySetByUID(
+    //     viewportInfos[0].displaySetInstanceUIDs[0]
+    //   );
+    //   const { StudyInstanceUID } = displaySet;
 
-      displaySetService
-        .getActiveDisplaySets()
-        .filter(
-          ds =>
-            ds.StudyInstanceUID === StudyInstanceUID &&
-            !viewportDisplaySetIds.includes(ds.displaySetInstanceUID)
-        )
-        .sort((a, b) => a.SeriesNumber - b.SeriesNumber)
-        .filter(ds => !STUDY_STACKS.some(stack => stack.uid === ds.displaySetInstanceUID))
-        .forEach((displaySet, index) => {
-          const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
-          STUDY_STACKS.push({
-            uid: displaySet.displaySetInstanceUID,
-            imageIds,
-          });
-        });
+    //   displaySetService
+    //     .getActiveDisplaySets()
+    //     .filter(
+    //       ds =>
+    //         ds.StudyInstanceUID === StudyInstanceUID &&
+    //         !viewportDisplaySetIds.includes(ds.displaySetInstanceUID)
+    //     )
+    //     .sort((a, b) => a.SeriesNumber - b.SeriesNumber)
+    //     .filter(ds => !STUDY_STACKS.some(stack => stack.uid === ds.displaySetInstanceUID))
+    //     .forEach((displaySet, index) => {
+    //       const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
+    //       STUDY_STACKS.push({
+    //         uid: displaySet.displaySetInstanceUID,
+    //         imageIds,
+    //       });
+    //     });
 
-      // setTimeout(() => {
-      //   console.log('All elements are enabled. Start prefetching images.');
-      //   STUDY_STACKS.forEach(stack => stackPrefetch.enable(stack, 0));
-      // }, 2000);
+    //   setTimeout(() => {
+    //     console.log('All elements are enabled. Start prefetching images.');
+    //     STUDY_STACKS.forEach(stack => stackPrefetch.enable(stack, 0));
+    //   }, 2000);
 
-      eventTarget.removeEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
-    }
+    //   eventTarget.removeEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
+    // }
     const { element } = evt.detail;
     element.addEventListener(EVENTS.CAMERA_RESET, resetCrosshairs);
 
