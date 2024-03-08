@@ -14,7 +14,7 @@ export type ProgressLoadingBarProps = {
  */
 function ProgressLoadingBar({ progress, height = '8px' }: ProgressLoadingBarProps): ReactElement {
   return (
-    <div className="loading">
+    <div className={`loading h-[${height}]`}>
       {progress === undefined || progress === null ? (
         <div className="infinite-loading-bar bg-primary-light"></div>
       ) : (
