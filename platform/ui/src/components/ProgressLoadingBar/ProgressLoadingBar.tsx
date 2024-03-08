@@ -5,6 +5,7 @@ import './ProgressLoadingBar.css';
 export type ProgressLoadingBarProps = {
   progress?: number;
   height?: string;
+  position?: string;
 };
 /**
  * A React component that renders a loading progress bar.
@@ -12,9 +13,13 @@ export type ProgressLoadingBarProps = {
  * If progress is provided, it will render a progress bar
  * The progress text can be optionally displayed to the left of the bar.
  */
-function ProgressLoadingBar({ progress, height = '8px' }: ProgressLoadingBarProps): ReactElement {
+function ProgressLoadingBar({
+  progress,
+  height = '8px',
+  position = 'relative',
+}: ProgressLoadingBarProps): ReactElement {
   return (
-    <div className={`loading h-[${height}]`}>
+    <div className={`loading h-[${height}] ${position}`}>
       {progress === undefined || progress === null ? (
         <div className="infinite-loading-bar bg-primary-light"></div>
       ) : (
