@@ -13,6 +13,7 @@ import {
   Settings,
   utilities as csUtilities,
   Enums as csEnums,
+  cache,
 } from '@cornerstonejs/core';
 import { Enums } from '@cornerstonejs/tools';
 import { cornerstoneStreamingImageVolumeLoader } from '@cornerstonejs/streaming-image-volume-loader';
@@ -31,6 +32,7 @@ import { CornerstoneServices } from './types';
 import initViewTiming from './utils/initViewTiming';
 
 import * as stackPrefetch from '@newlantern/extension-default/src/stackPrefetch';
+import { requestMap } from '@newlantern/extension-default/src/stackPrefetch/stackPrefetch';
 
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
@@ -217,10 +219,6 @@ export default async function init({
     commandsManager,
   });
 
-  const priorityCounter = 1000000;
-  const enabledElementCounter = 0;
-  const STUDY_STACKS = [];
-
   /**
    * When a viewport gets a new display set, this call will go through all the
    * active tools in the toolbar, and call any commands registered in the
@@ -260,6 +258,26 @@ export default async function init({
       const commands = button?.listeners?.[evt.type];
       commandsManager.run(commands, { viewportId, evt });
     });
+
+    const viewportInfo = cornerstoneViewportService.getViewportInfo(viewportId);
+
+    // stackPrefetch.enable({ uid: viewportId, imageIds: viewportInfo.viewportData.data.imageIds });
+    // console.log('viewportInfo', viewportInfo);
+    const allImages = imageLoadPoolManager.getRequestPool();
+    console.log('All images', allImages);
+    // const imageIds = Object.values(allImages.prefetch)
+    //   .flat()
+    //   .map(item => item.additionalDetails.imageId);
+
+    // for (const id of imageIds) {
+    //   const imageLoadObject = cache.getImageLoadObject(id);
+    //   console.log('imageLoadObject', imageLoadObject);
+    // }
+
+    // const prefetchingImageIds = allImages.prefetch
+    // Get all imageIds being loaded
+    // Cancel all except those in viewportInfo.viewportData.data.imageIds
+    // cornerstone.imageLoader.cancelLoadImages(imageIds);
   };
 
   /**
@@ -295,65 +313,70 @@ export default async function init({
     }
   };
 
+  const priorityCounter = 1000000;
+  const enabledElementCounter = 0;
+  const STUDY_STACKS = [];
+
   eventTarget.addEventListener(EVENTS.STACK_VIEWPORT_NEW_STACK, evt => {
     // const { element, imageIds } = evt.detail;
     // const { viewportId } = cornerstone.getEnabledElement(element);
     // stackPrefetch.enable({ uid: viewportId, imageIds }, priorityCounter--);
+    // stackPrefetch.enable({ uid: viewportId, imageIds });
     const { element } = evt.detail;
     cornerstoneTools.utilities.stackContextPrefetch.enable(element);
   });
   eventTarget.addEventListener(EVENTS.IMAGE_LOAD_FAILED, imageLoadFailedHandler);
   eventTarget.addEventListener(EVENTS.IMAGE_LOAD_ERROR, imageLoadFailedHandler);
 
-  function elementEnabledHandler(evt) {
-    // enabledElementCounter++;
-    // if (enabledElementCounter === cornerstone.getEnabledElements().length) {
-    //   const dataSource = extensionManager.getActiveDataSource()[0];
-    //   const { viewports } = viewportGridService.getState();
-    //   const viewportDisplaySetIds = [];
-    //   viewports.forEach(viewport => {
-    //     viewport.displaySetInstanceUIDs.forEach(displaySetInstanceUID => {
-    //       viewportDisplaySetIds.push(displaySetInstanceUID);
-    //     });
-    //   });
-    //   const viewportInfos = Array.from(viewports.values());
-    //   const displaySetInstanceUID = viewportInfos[0].displaySetInstanceUIDs[0];
-    //   if (displaySetInstanceUID) {
-    //     const displaySet = displaySetService.getDisplaySetByUID(displaySetInstanceUID);
-    //     if (displaySet) {
-    //       const { StudyInstanceUID } = displaySet;
-    //       displaySetService
-    //         .getActiveDisplaySets()
-    //         .filter(
-    //           ds =>
-    //             ds.StudyInstanceUID === StudyInstanceUID &&
-    //             !viewportDisplaySetIds.includes(ds.displaySetInstanceUID)
-    //         )
-    //         .sort((a, b) => a.SeriesNumber - b.SeriesNumber)
-    //         .filter(ds => !STUDY_STACKS.some(stack => stack.uid === ds.displaySetInstanceUID))
-    //         .forEach((displaySet, index) => {
-    //           const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
-    //           STUDY_STACKS.push({
-    //             uid: displaySet.displaySetInstanceUID,
-    //             imageIds,
-    //           });
-    //         });
-    //     }
-    //   }
-    //   setTimeout(() => {
-    //     console.log('All elements are enabled. Start prefetching images.');
-    //     STUDY_STACKS.forEach(stack => stackPrefetch.enable(stack, priorityCounter));
-    //   }, 2000);
-    //   eventTarget.removeEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
-    // }
-    const { element } = evt.detail;
+  // function elementEnabledHandler(evt) {
+  //   enabledElementCounter++;
+  //   if (enabledElementCounter === cornerstone.getEnabledElements().length) {
+  //     const dataSource = extensionManager.getActiveDataSource()[0];
+  //     const { viewports } = viewportGridService.getState();
+  //     const viewportDisplaySetIds = [];
+  //     viewports.forEach(viewport => {
+  //       viewport.displaySetInstanceUIDs.forEach(displaySetInstanceUID => {
+  //         viewportDisplaySetIds.push(displaySetInstanceUID);
+  //       });
+  //     });
+  //     const viewportInfos = Array.from(viewports.values());
+  //     const displaySetInstanceUID = viewportInfos[0].displaySetInstanceUIDs[0];
+  //     if (displaySetInstanceUID) {
+  //       const displaySet = displaySetService.getDisplaySetByUID(displaySetInstanceUID);
+  //       if (displaySet) {
+  //         const { StudyInstanceUID } = displaySet;
+  //         displaySetService
+  //           .getActiveDisplaySets()
+  //           .filter(
+  //             ds =>
+  //               ds.StudyInstanceUID === StudyInstanceUID &&
+  //               !viewportDisplaySetIds.includes(ds.displaySetInstanceUID)
+  //           )
+  //           .sort((a, b) => a.SeriesNumber - b.SeriesNumber)
+  //           .filter(ds => !STUDY_STACKS.some(stack => stack.uid === ds.displaySetInstanceUID))
+  //           .forEach((displaySet, index) => {
+  //             const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
+  //             STUDY_STACKS.push({
+  //               uid: displaySet.displaySetInstanceUID,
+  //               imageIds,
+  //             });
+  //           });
+  //       }
+  //     }
+  //     setTimeout(() => {
+  //       console.log('All elements are enabled. Start prefetching images.');
+  //       STUDY_STACKS.forEach(stack => stackPrefetch.enable(stack, priorityCounter));
+  //     }, 2000);
+  //     eventTarget.removeEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
+  //   }
+  //   const { element } = evt.detail;
 
-    element.addEventListener(EVENTS.CAMERA_RESET, resetCrosshairs);
+  //   element.addEventListener(EVENTS.CAMERA_RESET, resetCrosshairs);
 
-    eventTarget.addEventListener(EVENTS.STACK_VIEWPORT_NEW_STACK, toolbarEventListener);
+  //   eventTarget.addEventListener(EVENTS.STACK_VIEWPORT_NEW_STACK, toolbarEventListener);
 
-    initViewTiming({ element, eventTarget });
-  }
+  //   initViewTiming({ element, eventTarget });
+  // }
 
   function elementDisabledHandler(evt) {
     const { element } = evt.detail;
@@ -371,10 +394,10 @@ export default async function init({
   }
 
   // eventTarget.addEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
-  eventTarget.addEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler.bind(null));
+  // eventTarget.addEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler.bind(null));
 
   // eventTarget.addEventListener(EVENTS.ELEMENT_DISABLED, elementDisabledHandler);
-  eventTarget.addEventListener(EVENTS.ELEMENT_DISABLED, elementDisabledHandler.bind(null));
+  // eventTarget.addEventListener(EVENTS.ELEMENT_DISABLED, elementDisabledHandler.bind(null));
 
   viewportGridService.subscribe(
     viewportGridService.EVENTS.ACTIVE_VIEWPORT_ID_CHANGED,
