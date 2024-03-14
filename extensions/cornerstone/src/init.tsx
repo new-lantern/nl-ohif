@@ -14,6 +14,7 @@ import {
   utilities as csUtilities,
   Enums as csEnums,
   cache,
+  imageLoader,
 } from '@cornerstonejs/core';
 import { Enums } from '@cornerstonejs/tools';
 import { cornerstoneStreamingImageVolumeLoader } from '@cornerstonejs/streaming-image-volume-loader';
@@ -32,7 +33,10 @@ import { CornerstoneServices } from './types';
 import initViewTiming from './utils/initViewTiming';
 
 import * as stackPrefetch from '@newlantern/extension-default/src/stackPrefetch';
-import { requestMap } from '@newlantern/extension-default/src/stackPrefetch/stackPrefetch';
+import {
+  requestMap,
+  scrollInteraction,
+} from '@newlantern/extension-default/src/stackPrefetch/stackPrefetch';
 
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
@@ -108,6 +112,11 @@ export default async function init({
   window.services = servicesManager.services;
   window.extensionManager = extensionManager;
   window.commandsManager = commandsManager;
+
+  let priorityCounter = 1000000;
+  let interactionPriorityCounter = 1000000;
+  const enabledElementCounter = 0;
+  const STUDY_STACKS = [];
 
   if (
     appConfig.showWarningMessageForCrossOrigin &&
@@ -259,25 +268,13 @@ export default async function init({
       commandsManager.run(commands, { viewportId, evt });
     });
 
+    // Prioritize loading of active element
     const viewportInfo = cornerstoneViewportService.getViewportInfo(viewportId);
+    const { imageIds } = viewportInfo.getViewportData().data as any;
 
-    // stackPrefetch.enable({ uid: viewportId, imageIds: viewportInfo.viewportData.data.imageIds });
-    // console.log('viewportInfo', viewportInfo);
-    const allImages = imageLoadPoolManager.getRequestPool();
-    console.log('All images', allImages);
-    // const imageIds = Object.values(allImages.prefetch)
-    //   .flat()
-    //   .map(item => item.additionalDetails.imageId);
-
-    // for (const id of imageIds) {
-    //   const imageLoadObject = cache.getImageLoadObject(id);
-    //   console.log('imageLoadObject', imageLoadObject);
-    // }
-
-    // const prefetchingImageIds = allImages.prefetch
-    // Get all imageIds being loaded
-    // Cancel all except those in viewportInfo.viewportData.data.imageIds
-    // cornerstone.imageLoader.cancelLoadImages(imageIds);
+    stackPrefetch.enable({ uid: viewportId, imageIds }, priorityCounter--);
+    // const allImages = imageLoadPoolManager.getRequestPool();
+    // console.log('All images', allImages);
   };
 
   /**
@@ -313,17 +310,18 @@ export default async function init({
     }
   };
 
-  const priorityCounter = 1000000;
-  const enabledElementCounter = 0;
-  const STUDY_STACKS = [];
-
   eventTarget.addEventListener(EVENTS.STACK_VIEWPORT_NEW_STACK, evt => {
-    // const { element, imageIds } = evt.detail;
-    // const { viewportId } = cornerstone.getEnabledElement(element);
-    // stackPrefetch.enable({ uid: viewportId, imageIds }, priorityCounter--);
+    const { element, imageIds } = evt.detail;
+    element.addEventListener(EVENTS.STACK_VIEWPORT_SCROLL, scrollEvt => {
+      // prioritize maxNumRequests before or after current index based on direction
+      // Add to interaction requestMap
+      scrollInteraction(element, scrollEvt.detail, interactionPriorityCounter--, imageIds);
+    });
+    const { viewportId } = cornerstone.getEnabledElement(element);
+    stackPrefetch.enable({ uid: viewportId, imageIds }, priorityCounter--);
     // stackPrefetch.enable({ uid: viewportId, imageIds });
-    const { element } = evt.detail;
-    cornerstoneTools.utilities.stackContextPrefetch.enable(element);
+    // const { element } = evt.detail;
+    // cornerstoneTools.utilities.stackContextPrefetch.enable(element);
   });
   eventTarget.addEventListener(EVENTS.IMAGE_LOAD_FAILED, imageLoadFailedHandler);
   eventTarget.addEventListener(EVENTS.IMAGE_LOAD_ERROR, imageLoadFailedHandler);
