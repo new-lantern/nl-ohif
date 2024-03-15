@@ -13,8 +13,6 @@ import {
   Settings,
   utilities as csUtilities,
   Enums as csEnums,
-  cache,
-  imageLoader,
 } from '@cornerstonejs/core';
 import { Enums } from '@cornerstonejs/tools';
 import { cornerstoneStreamingImageVolumeLoader } from '@cornerstonejs/streaming-image-volume-loader';
@@ -30,13 +28,8 @@ import interleaveTopToBottom from './utils/interleaveTopToBottom';
 import initContextMenu from './initContextMenu';
 import initDoubleClick from './initDoubleClick';
 import { CornerstoneServices } from './types';
-import initViewTiming from './utils/initViewTiming';
 
-import * as stackPrefetch from '@newlantern/extension-default/src/stackPrefetch';
-import {
-  requestMap,
-  scrollInteraction,
-} from '@newlantern/extension-default/src/stackPrefetch/stackPrefetch';
+import * as imageLoading from '@newlantern/extension-default/src/imageLoading';
 
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
@@ -272,7 +265,7 @@ export default async function init({
     const viewportInfo = cornerstoneViewportService.getViewportInfo(viewportId);
     const { imageIds } = viewportInfo.getViewportData().data as any;
 
-    stackPrefetch.enable({ uid: viewportId, imageIds }, priorityCounter--);
+    imageLoading.prefetchEnable({ uid: viewportId, imageIds }, priorityCounter--);
     // const allImages = imageLoadPoolManager.getRequestPool();
     // console.log('All images', allImages);
   };
@@ -312,13 +305,20 @@ export default async function init({
 
   eventTarget.addEventListener(EVENTS.STACK_VIEWPORT_NEW_STACK, evt => {
     const { element, imageIds } = evt.detail;
+    const { viewportId } = cornerstone.getEnabledElement(element);
+
     element.addEventListener(EVENTS.STACK_VIEWPORT_SCROLL, scrollEvt => {
       // prioritize maxNumRequests before or after current index based on direction
       // Add to interaction requestMap
-      scrollInteraction(element, scrollEvt.detail, interactionPriorityCounter--, imageIds);
+      imageLoading.scrollInteraction(
+        scrollEvt.detail,
+        interactionPriorityCounter--,
+        imageIds,
+        viewportId
+      );
     });
-    const { viewportId } = cornerstone.getEnabledElement(element);
-    stackPrefetch.enable({ uid: viewportId, imageIds }, priorityCounter--);
+
+    imageLoading.prefetchEnable({ uid: viewportId, imageIds }, priorityCounter--);
     // stackPrefetch.enable({ uid: viewportId, imageIds });
     // const { element } = evt.detail;
     // cornerstoneTools.utilities.stackContextPrefetch.enable(element);
