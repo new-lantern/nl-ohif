@@ -1,6 +1,6 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { Machine } from 'xstate';
+import { Machine, createMachine } from 'xstate';
 import { useMachine } from '@xstate/react';
 import { useViewportGrid } from '@ohif/ui';
 import { machineConfiguration, defaultOptions } from './measurementTrackingMachine';

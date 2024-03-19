@@ -1,6 +1,6 @@
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
 // NOTE: If we found a way to make `useDrop` conditional,
@@ -12,12 +12,14 @@ function ViewportPane({
   customStyle,
   isActive,
   onDrop,
+  onDrag,
   onDoubleClick,
   onInteraction,
   acceptDropsFor,
   dragData,
 }) {
   let dropElement = null;
+
   const [{ isHighlighted, isHovered }, drop] = useDrop({
     accept: acceptDropsFor,
     // TODO: pass in as prop?
@@ -30,15 +32,20 @@ function ViewportPane({
         onDrop(droppedItem, dragData);
       }
     },
+    hover: (droppedItem: any, monitor) => {
+      const canDrop = monitor.canDrop();
+      const isOver = monitor.isOver();
+
+      if (canDrop && isOver && onDrop) {
+        onDrag(droppedItem, dragData);
+      }
+    },
     // Monitor, and collect props; returned as values by `useDrop`
     collect: monitor => ({
       isHighlighted: monitor.canDrop(),
       isHovered: monitor.isOver(),
     }),
   });
-
-  console.log('isHighlighted', isHighlighted);
-  console.log('isHovered', isHovered);
 
   const [collectedProps, drag, dragPreview] = useDrag({
     type: 'displayset',
@@ -84,7 +91,7 @@ function ViewportPane({
       onScroll={onInteractionHandler}
       onWheel={onInteractionHandler}
       className={classnames(
-        'bg-red hover:border-primary-light group h-full w-full overflow-hidden rounded-md transition duration-300',
+        'bg-red hover:border-primary-light group h-full w-full overflow-hidden rounded-md transition duration-1000',
         {
           'border-primary-light border-2': isActive,
           'border-2 border-transparent': !isActive,
