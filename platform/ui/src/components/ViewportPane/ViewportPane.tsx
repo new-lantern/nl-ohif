@@ -13,6 +13,7 @@ function ViewportPane({
   isActive,
   onDrop,
   onDrag,
+  viewportIsHighlighted,
   onDoubleClick,
   onInteraction,
   acceptDropsFor,
@@ -20,7 +21,7 @@ function ViewportPane({
 }) {
   let dropElement = null;
 
-  const [{ isHighlighted, isHovered }, drop] = useDrop({
+  const [{ isHovered }, drop] = useDrop({
     accept: acceptDropsFor,
     // TODO: pass in as prop?
     drop: (droppedItem, monitor) => {
@@ -32,7 +33,7 @@ function ViewportPane({
         onDrop(droppedItem, dragData);
       }
     },
-    hover: (droppedItem: any, monitor) => {
+    hover: (droppedItem, monitor) => {
       const canDrop = monitor.canDrop();
       const isOver = monitor.isOver();
 
@@ -50,7 +51,7 @@ function ViewportPane({
   const [collectedProps, drag, dragPreview] = useDrag({
     type: 'displayset',
     item: { ...dragData },
-    canDrag: function (monitor) {
+    canDrag: function () {
       return Object.keys(dragData).length !== 0;
     },
   });
@@ -91,11 +92,12 @@ function ViewportPane({
       onScroll={onInteractionHandler}
       onWheel={onInteractionHandler}
       className={classnames(
-        'bg-red hover:border-primary-light group h-full w-full overflow-hidden rounded-md transition duration-1000',
+        'hover:border-primary-light group h-full w-full overflow-hidden rounded-md transition duration-1000',
         {
           'border-primary-light border-2': isActive,
           'border-2 border-transparent': !isActive,
           'border-2 bg-purple-700': isHovered,
+          'animate-pulse': viewportIsHighlighted,
         },
         className
       )}
@@ -124,12 +126,17 @@ ViewportPane.propTypes = {
   children: PropTypes.node.isRequired,
   /** Classes to append to container */
   className: PropTypes.string,
+  customStyle: PropTypes.object,
   /** Bool to show active styling */
   isActive: PropTypes.bool.isRequired,
   /** Indicates drag items we should accept for drops */
   acceptDropsFor: PropTypes.string.isRequired,
   /** Function that handles drop events */
   onDrop: PropTypes.func.isRequired,
+  /** Function that handles drag events */
+  onDrag: PropTypes.func.isRequired,
+  /** Bool to show if the origin viewport should be highlighted */
+  viewportIsHighlighted: PropTypes.bool,
   /** Called when the viewportPane is interacted with by the user */
   onInteraction: PropTypes.func.isRequired,
   /** Executed when the pane is double clicked */
