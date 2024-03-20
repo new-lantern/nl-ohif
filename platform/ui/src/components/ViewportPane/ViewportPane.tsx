@@ -1,6 +1,6 @@
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
 // NOTE: If we found a way to make `useDrop` conditional,
@@ -13,6 +13,7 @@ function ViewportPane({
   isActive,
   onDrop,
   onDrag,
+  onEndDragHandler,
   viewportIsHighlighted,
   onDoubleClick,
   onInteraction,
@@ -54,6 +55,9 @@ function ViewportPane({
     canDrag: function () {
       return Object.keys(dragData).length !== 0;
     },
+    end() {
+      onEndDragHandler();
+    },
   });
 
   const focus = () => {
@@ -76,13 +80,15 @@ function ViewportPane({
     drag(element);
   };
 
+  const refHandler = el => {
+    refHandlerDrag(el);
+    refHandlerDrop(el);
+  };
+
   return (
     <div
       // ref={refHandler}
-      ref={el => {
-        refHandlerDrop(el);
-        refHandlerDrag(el);
-      }}
+      ref={refHandler}
       // onInteractionHandler...
       // https://reactjs.org/docs/events.html#mouse-events
       // https://stackoverflow.com/questions/8378243/catch-scrolling-event-on-overflowhidden-element
@@ -135,6 +141,8 @@ ViewportPane.propTypes = {
   onDrop: PropTypes.func.isRequired,
   /** Function that handles drag events */
   onDrag: PropTypes.func.isRequired,
+  /** Function that handles end drag events */
+  onEndDragHandler: PropTypes.func.isRequired,
   /** Bool to show if the origin viewport should be highlighted */
   viewportIsHighlighted: PropTypes.bool,
   /** Called when the viewportPane is interacted with by the user */
