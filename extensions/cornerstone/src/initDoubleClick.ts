@@ -47,9 +47,9 @@ function initDoubleClick({
 }: initDoubleClickArgs): void {
   const cornerstoneViewportHandleDoubleClick = (evt: CustomEvent) => {
     const activeTools = toolbarService.getActiveTools();
-    console.log(activeTools);
-    // Do not allow double click on a tool.
     const nearbyToolData = findNearbyToolData(commandsManager, evt);
+
+    // Do not allow double click on a tool or while magic ROI is active
     if (nearbyToolData || activeTools.includes('MagicROI')) {
       return;
     }
