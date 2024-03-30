@@ -51,7 +51,6 @@ function initDoubleClick({
     const nearbyToolData = findNearbyToolData(commandsManager, evt);
 
     // Do not allow double click on a tool or while magic ROI is active
-    console.log('M', MagicROITool.toolName);
     if (nearbyToolData || activeTools.includes(MagicROITool.toolName)) {
       return;
     }
