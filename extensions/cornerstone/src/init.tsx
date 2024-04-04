@@ -10,6 +10,7 @@ import {
   metaData,
   volumeLoader,
   imageLoadPoolManager,
+  getEnabledElement,
   Settings,
   utilities as csUtilities,
   Enums as csEnums,
@@ -30,7 +31,7 @@ import initDoubleClick from './initDoubleClick';
 import { CornerstoneServices } from './types';
 import initViewTiming from './utils/initViewTiming';
 
-import * as stackPrefetch from '@newlantern/extension-default/src/stackPrefetch';
+import * as imageLoading from '@newlantern/extension-default/src/imageLoading';
 
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
@@ -106,6 +107,11 @@ export default async function init({
   window.services = servicesManager.services;
   window.extensionManager = extensionManager;
   window.commandsManager = commandsManager;
+
+  let priorityCounter = 1000000;
+  let interactionPriorityCounter = 1000000;
+  const enabledElementCounter = 0;
+  const STUDY_STACKS = [];
 
   if (
     appConfig.showWarningMessageForCrossOrigin &&
@@ -206,6 +212,16 @@ export default async function init({
     }
   );
 
+  // resize the cornerstone viewport service when the grid size changes
+  // IMPORTANT: this should happen outside of the OHIFCornerstoneViewport
+  // since it will trigger a rerender of each viewport and each resizing
+  // the offscreen canvas which would result in a performance hit, this should
+  // done only once per grid resize here. Doing it once here, allows us to reduce
+  // the refreshRage(in ms) to 10 from 50. I tried with even 1 or 5 ms it worked fine
+  viewportGridService.subscribe(viewportGridService.EVENTS.GRID_SIZE_CHANGED, () => {
+    cornerstoneViewportService.resize(true);
+  });
+
   initContextMenu({
     cornerstoneViewportService,
     customizationService,
@@ -214,12 +230,9 @@ export default async function init({
 
   initDoubleClick({
     customizationService,
+    toolbarService,
     commandsManager,
   });
-
-  const priorityCounter = 1000000;
-  const enabledElementCounter = 0;
-  const STUDY_STACKS = [];
 
   /**
    * When a viewport gets a new display set, this call will go through all the
@@ -260,6 +273,12 @@ export default async function init({
       const commands = button?.listeners?.[evt.type];
       commandsManager.run(commands, { viewportId, evt });
     });
+
+    // Prioritize loading of active element
+    const viewportInfo = cornerstoneViewportService.getViewportInfo(viewportId);
+    const { imageIds } = viewportInfo.getViewportData().data as any;
+
+    imageLoading.prefetchEnable({ uid: viewportId, imageIds }, priorityCounter--);
   };
 
   /**
@@ -296,56 +315,26 @@ export default async function init({
   };
 
   eventTarget.addEventListener(EVENTS.STACK_VIEWPORT_NEW_STACK, evt => {
-    // const { element, imageIds } = evt.detail;
-    // const { viewportId } = cornerstone.getEnabledElement(element);
-    // stackPrefetch.enable({ uid: viewportId, imageIds }, priorityCounter--);
-    const { element } = evt.detail;
-    cornerstoneTools.utilities.stackContextPrefetch.enable(element);
+    const { element, imageIds } = evt.detail;
+    const { viewportId } = cornerstone.getEnabledElement(element);
+
+    element.addEventListener(EVENTS.STACK_VIEWPORT_SCROLL, scrollEvt => {
+      // prioritize maxNumRequests before or after current index based on direction
+      // Add to interaction requestMap
+      imageLoading.scrollInteraction(
+        scrollEvt.detail,
+        interactionPriorityCounter--,
+        imageIds,
+        viewportId
+      );
+    });
+
+    imageLoading.prefetchEnable({ uid: viewportId, imageIds }, priorityCounter--);
   });
   eventTarget.addEventListener(EVENTS.IMAGE_LOAD_FAILED, imageLoadFailedHandler);
   eventTarget.addEventListener(EVENTS.IMAGE_LOAD_ERROR, imageLoadFailedHandler);
 
   function elementEnabledHandler(evt) {
-    // enabledElementCounter++;
-    // if (enabledElementCounter === cornerstone.getEnabledElements().length) {
-    //   const dataSource = extensionManager.getActiveDataSource()[0];
-    //   const { viewports } = viewportGridService.getState();
-    //   const viewportDisplaySetIds = [];
-    //   viewports.forEach(viewport => {
-    //     viewport.displaySetInstanceUIDs.forEach(displaySetInstanceUID => {
-    //       viewportDisplaySetIds.push(displaySetInstanceUID);
-    //     });
-    //   });
-    //   const viewportInfos = Array.from(viewports.values());
-    //   const displaySetInstanceUID = viewportInfos[0].displaySetInstanceUIDs[0];
-    //   if (displaySetInstanceUID) {
-    //     const displaySet = displaySetService.getDisplaySetByUID(displaySetInstanceUID);
-    //     if (displaySet) {
-    //       const { StudyInstanceUID } = displaySet;
-    //       displaySetService
-    //         .getActiveDisplaySets()
-    //         .filter(
-    //           ds =>
-    //             ds.StudyInstanceUID === StudyInstanceUID &&
-    //             !viewportDisplaySetIds.includes(ds.displaySetInstanceUID)
-    //         )
-    //         .sort((a, b) => a.SeriesNumber - b.SeriesNumber)
-    //         .filter(ds => !STUDY_STACKS.some(stack => stack.uid === ds.displaySetInstanceUID))
-    //         .forEach((displaySet, index) => {
-    //           const imageIds = dataSource.getImageIdsForDisplaySet(displaySet);
-    //           STUDY_STACKS.push({
-    //             uid: displaySet.displaySetInstanceUID,
-    //             imageIds,
-    //           });
-    //         });
-    //     }
-    //   }
-    //   setTimeout(() => {
-    //     console.log('All elements are enabled. Start prefetching images.');
-    //     STUDY_STACKS.forEach(stack => stackPrefetch.enable(stack, priorityCounter));
-    //   }, 2000);
-    //   eventTarget.removeEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
-    // }
     const { element } = evt.detail;
 
     element.addEventListener(EVENTS.CAMERA_RESET, resetCrosshairs);
@@ -365,15 +354,10 @@ export default async function init({
     //   EVENTS.STACK_VIEWPORT_NEW_STACK,
     //   newStackCallback
     // );
-
-    // enabledElementCounter = 0;
-    // STUDY_STACKS = [];
   }
 
-  // eventTarget.addEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler);
   eventTarget.addEventListener(EVENTS.ELEMENT_ENABLED, elementEnabledHandler.bind(null));
 
-  // eventTarget.addEventListener(EVENTS.ELEMENT_DISABLED, elementDisabledHandler);
   eventTarget.addEventListener(EVENTS.ELEMENT_DISABLED, elementDisabledHandler.bind(null));
 
   viewportGridService.subscribe(
