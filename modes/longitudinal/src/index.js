@@ -111,8 +111,8 @@ function modeFactory({ modeConfiguration }) {
 
       customizationService.addModeCustomizations([
         {
-          id: 'segmentation.disableEditing',
-          value: true,
+          id: 'segmentation.panel',
+          disableEditing: true,
         },
       ]);
 
@@ -186,7 +186,7 @@ function modeFactory({ modeConfiguration }) {
             props: {
               leftPanels: [tracked.thumbnailList],
               rightPanels: [dicomSeg.panel, tracked.measurements],
-              rightPanelDefaultClosed: true,
+              rightPanelClosed: true,
               viewports: [
                 {
                   namespace: tracked.viewport,

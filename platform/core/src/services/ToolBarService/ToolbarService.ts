@@ -92,7 +92,7 @@ export default class ToolbarService extends PubSubService {
   }
 
   public reset(): void {
-    this.unsubscriptions.forEach(unsub => unsub());
+    // this.unsubscriptions.forEach(unsub => unsub());
     this.state = {
       buttons: {},
       buttonSections: {},
@@ -144,6 +144,10 @@ export default class ToolbarService extends PubSubService {
   public addButtons(buttons: Button[]): void {
     buttons.forEach(button => {
       if (!this.state.buttons[button.id]) {
+        if (!button.props) {
+          button.props = {};
+        }
+
         this.state.buttons[button.id] = button;
       }
     });
@@ -374,6 +378,7 @@ export default class ToolbarService extends PubSubService {
    * @param {Array} buttons - The buttons to be added to the section.
    */
   createButtonSection(key, buttons) {
+    // make sure all buttons have at least an empty props
     this.state.buttonSections[key] = buttons;
     this._broadcastEvent(this.EVENTS.TOOL_BAR_MODIFIED, { ...this.state });
   }

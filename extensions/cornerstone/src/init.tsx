@@ -15,7 +15,10 @@ import {
   utilities as csUtilities,
   Enums as csEnums,
 } from '@cornerstonejs/core';
-import { cornerstoneStreamingImageVolumeLoader } from '@cornerstonejs/streaming-image-volume-loader';
+import {
+  cornerstoneStreamingImageVolumeLoader,
+  cornerstoneStreamingDynamicImageVolumeLoader,
+} from '@cornerstonejs/streaming-image-volume-loader';
 
 import initWADOImageLoader from './initWADOImageLoader';
 import initCornerstoneTools from './initCornerstoneTools';
@@ -31,10 +34,9 @@ import { CornerstoneServices } from './types';
 import initViewTiming from './utils/initViewTiming';
 
 import * as imageLoading from '@newlantern/extension-default/src/imageLoading';
-import { utilities } from '@cornerstonejs/core';
 import { colormaps } from './utils/colormaps';
 
-const { registerColormap } = utilities.colormap;
+const { registerColormap } = csUtilities.colormap;
 
 // TODO: Cypress tests are currently grabbing this from the window?
 window.cornerstone = cornerstone;
@@ -96,7 +98,6 @@ export default async function init({
     displaySetService,
     uiModalService,
     uiNotificationService,
-    cineService,
     cornerstoneViewportService,
     hangingProtocolService,
     toolbarService,
@@ -180,6 +181,11 @@ export default async function init({
     cornerstoneStreamingImageVolumeLoader
   );
 
+  volumeLoader.registerVolumeLoader(
+    'cornerstoneStreamingDynamicImageVolume',
+    cornerstoneStreamingDynamicImageVolumeLoader
+  );
+
   hangingProtocolService.registerImageLoadStrategy('interleaveCenter', interleaveCenterLoader);
   hangingProtocolService.registerImageLoadStrategy('interleaveTopToBottom', interleaveTopToBottom);
   hangingProtocolService.registerImageLoadStrategy('nth', nthLoader);
@@ -203,7 +209,7 @@ export default async function init({
   /* Measurement Service */
   this.measurementServiceSource = connectToolsToMeasurementService(servicesManager);
 
-  initCineService(cineService);
+  initCineService(servicesManager);
 
   // When a custom image load is performed, update the relevant viewports
   hangingProtocolService.subscribe(
