@@ -103,7 +103,7 @@ function ViewportPane({
           'border-primary-light border-2': isActive,
           'border-2 border-transparent': !isActive,
           'border-2 bg-purple-700': isHovered,
-          'animate-pulse': viewportIsHighlighted,
+          // 'animate-pulse': viewportIsHighlighted, // Add this back for pulsating effect
         },
         className
       )}
