@@ -67,7 +67,6 @@ function ViewportPane({
   };
 
   const onInteractionHandler = event => {
-    console.log('here');
     focus();
     onInteraction(event);
   };
