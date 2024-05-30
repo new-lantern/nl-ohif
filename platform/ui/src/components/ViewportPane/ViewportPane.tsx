@@ -67,6 +67,7 @@ function ViewportPane({
   };
 
   const onInteractionHandler = event => {
+    console.log('here');
     focus();
     onInteraction(event);
   };
@@ -94,11 +95,12 @@ function ViewportPane({
       // https://stackoverflow.com/questions/8378243/catch-scrolling-event-on-overflowhidden-element
       // onMouseDown={onInteractionHandler}
       onDoubleClick={onDoubleClick}
-      onClick={onInteractionHandler}
-      onScroll={onInteractionHandler}
-      onWheel={onInteractionHandler}
+      // onClick={onInteractionHandler}
+      // onScroll={onInteractionHandler}
+      // onWheel={onInteractionHandler}
+      onMouseEnter={onInteractionHandler}
       className={classnames(
-        'hover:border-primary-light group h-full w-full overflow-hidden rounded-md transition duration-1000',
+        'hover:border-primary-light group h-full w-full overflow-hidden rounded-md',
         {
           'border-primary-light border-2': isActive,
           'border-2 border-transparent': !isActive,
