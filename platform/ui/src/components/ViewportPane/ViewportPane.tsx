@@ -98,7 +98,7 @@ function ViewportPane({
       onScroll={onInteractionHandler}
       onWheel={onInteractionHandler}
       className={classnames(
-        'group h-full w-full overflow-hidden rounded-md transition duration-300',
+        'group h-full w-full overflow-hidden rounded-md',
         {
           'border-primary-light border-2': isActive,
           'border-2 border-transparent': !isActive,
@@ -152,7 +152,7 @@ ViewportPane.propTypes = {
   originViewportId: PropTypes.string,
 };
 
-const noop = () => {};
+const noop = () => { };
 
 ViewportPane.defaultProps = {
   onInteraction: noop,
