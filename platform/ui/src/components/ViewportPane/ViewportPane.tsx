@@ -92,19 +92,17 @@ function ViewportPane({
       // onInteractionHandler...
       // https://reactjs.org/docs/events.html#mouse-events
       // https://stackoverflow.com/questions/8378243/catch-scrolling-event-on-overflowhidden-element
-      // onMouseDown={onInteractionHandler}
+      onMouseDown={onInteractionHandler}
       onDoubleClick={onDoubleClick}
-      // onClick={onInteractionHandler}
-      // onScroll={onInteractionHandler}
-      // onWheel={onInteractionHandler}
-      onMouseEnter={onInteractionHandler}
+      onClick={onInteractionHandler}
+      onScroll={onInteractionHandler}
+      onWheel={onInteractionHandler}
       className={classnames(
-        'hover:border-primary-light group h-full w-full overflow-hidden rounded-md',
+        'group h-full w-full overflow-hidden rounded-md',
         {
           'border-primary-light border-2': isActive,
           'border-2 border-transparent': !isActive,
           'border-2 bg-purple-700': isHovered,
-          // 'animate-pulse': viewportIsHighlighted, // Add this back for pulsating effect
         },
         className
       )}
@@ -114,10 +112,10 @@ function ViewportPane({
     >
       <div
         className={classnames(
-          'h-full w-full overflow-hidden rounded-md group-hover:border-transparent',
+          'h-full w-full overflow-hidden rounded-md',
           {
             'border border-transparent': isActive,
-            'border-secondary-light border': !isActive,
+            'border-secondary-light group-hover:border-primary-light/70 border': !isActive,
           },
           className
         )}
@@ -154,7 +152,7 @@ ViewportPane.propTypes = {
   originViewportId: PropTypes.string,
 };
 
-const noop = () => {};
+const noop = () => { };
 
 ViewportPane.defaultProps = {
   onInteraction: noop,
