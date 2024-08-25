@@ -107,7 +107,6 @@ export default class ToolbarService extends PubSubService {
   }
 
   public onModeEnter(): void {
-    console.log('ENTER');
     this.reset();
   }
 
