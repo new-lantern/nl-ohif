@@ -339,7 +339,8 @@ function commandsModule({
         if (activeToolName === 'Crosshairs') {
           toolGroup.setToolDisabled(activeToolName);
         } else {
-          toolGroup.setToolPassive(activeToolName);
+          // We remove all bindings so that bindings from this tool don't override the bindings of the new tool
+          toolGroup.setToolPassive(activeToolName, { removeAllBindings: true });
         }
       }
 
@@ -355,6 +356,11 @@ function commandsModule({
         bindings: [
           {
             mouseButton: Enums.MouseBindings.Primary,
+          },
+          // We add the command key binding so that the tool works while holding the record button on powermic
+          {
+            mouseButton: Enums.MouseBindings.Primary,
+            modifierKey: 91, // Command key on Macs
           },
         ],
       });
