@@ -15,7 +15,7 @@ function ViewerViewportGrid(props) {
   const { layout, activeViewportId, viewports } = viewportGrid;
   const { numCols, numRows } = layout;
   const elementRef = useRef(null);
-
+  const layoutHash = useRef(null);
   // TODO -> Need some way of selecting which displaySets hit the viewports.
   const { displaySetService, measurementService, hangingProtocolService, uiNotificationService } = (
     servicesManager as ServicesManager
@@ -146,6 +146,16 @@ function ViewerViewportGrid(props) {
       unsubscribe();
     };
   }, []);
+
+  // Check viewport readiness in useEffect
+  useEffect(() => {
+    const allReady = viewportGridService.getGridViewportsReady();
+    const sameLayoutHash = layoutHash.current === generateLayoutHash();
+    if (allReady && !sameLayoutHash) {
+      layoutHash.current = generateLayoutHash();
+      viewportGridService.publishViewportsReady();
+    }
+  }, [viewportGridService, generateLayoutHash]);
 
   useEffect(() => {
     const { unsubscribe } = measurementService.subscribe(
@@ -339,6 +349,9 @@ function ViewerViewportGrid(props) {
               viewportOptions={viewportOptions}
               displaySetOptions={displaySetOptions}
               needsRerendering={displaySetsNeedsRerendering}
+              onElementEnabled={() => {
+                viewportGridService.setViewportIsReady(viewportId, true);
+              }}
             />
           </div>
         </ViewportPane>
