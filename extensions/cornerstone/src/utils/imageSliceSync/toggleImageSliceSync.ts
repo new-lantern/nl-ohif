@@ -10,8 +10,7 @@ export default function toggleImageSliceSync({
 
   syncId ||= IMAGE_SLICE_SYNC_NAME;
 
-  const viewports =
-    providedViewports || getReconstructableStackViewports(viewportGridService, displaySetService);
+  const viewports = getReconstructableStackViewports(viewportGridService, displaySetService);
 
   const someViewportHasSync = viewports.some(viewport => {
     const syncStates = syncGroupService.getSynchronizersForViewport(
@@ -74,20 +73,5 @@ export function getReconstructableStackViewports(viewportGridService, displaySet
     viewport => viewport.displaySetInstanceUIDs && viewport.displaySetInstanceUIDs.length
   );
 
-  // filter reconstructable viewports
-  viewports = viewports.filter(viewport => {
-    const { displaySetInstanceUIDs } = viewport;
-
-    for (const displaySetInstanceUID of displaySetInstanceUIDs) {
-      const displaySet = displaySetService.getDisplaySetByUID(displaySetInstanceUID);
-
-      // TODO - add a better test than isReconstructable
-      if (displaySet && displaySet.isReconstructable) {
-        return true;
-      }
-
-      return false;
-    }
-  });
   return viewports;
 }
