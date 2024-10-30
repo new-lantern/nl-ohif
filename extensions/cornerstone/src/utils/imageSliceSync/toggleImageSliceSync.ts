@@ -10,8 +10,7 @@ export default function toggleImageSliceSync({
 
   syncId ||= IMAGE_SLICE_SYNC_NAME;
 
-  const viewports =
-    providedViewports || getReconstructableStackViewports(viewportGridService, displaySetService);
+  const viewports = getViewports(viewportGridService, displaySetService);
 
   const someViewportHasSync = viewports.some(viewport => {
     const syncStates = syncGroupService.getSynchronizersForViewport(
@@ -46,7 +45,7 @@ export default function toggleImageSliceSync({
 function disableSync(syncName, servicesManager) {
   const { syncGroupService, viewportGridService, displaySetService, cornerstoneViewportService } =
     servicesManager.services;
-  const viewports = getReconstructableStackViewports(viewportGridService, displaySetService);
+  const viewports = getViewports(viewportGridService, displaySetService);
   viewports.forEach(gridViewport => {
     const { viewportId } = gridViewport.viewportOptions;
     const viewport = cornerstoneViewportService.getCornerstoneViewport(viewportId);
@@ -65,7 +64,7 @@ function disableSync(syncName, servicesManager) {
  * Gets the consistent spacing stack viewport types, which are the ones which
  * can be navigated using the stack image sync right now.
  */
-export function getReconstructableStackViewports(viewportGridService, displaySetService) {
+export function getViewports(viewportGridService, displaySetService) {
   let { viewports } = viewportGridService.getState();
 
   viewports = [...viewports.values()];
@@ -74,20 +73,5 @@ export function getReconstructableStackViewports(viewportGridService, displaySet
     viewport => viewport.displaySetInstanceUIDs && viewport.displaySetInstanceUIDs.length
   );
 
-  // filter reconstructable viewports
-  viewports = viewports.filter(viewport => {
-    const { displaySetInstanceUIDs } = viewport;
-
-    for (const displaySetInstanceUID of displaySetInstanceUIDs) {
-      const displaySet = displaySetService.getDisplaySetByUID(displaySetInstanceUID);
-
-      // TODO - add a better test than isReconstructable
-      if (displaySet && displaySet.isReconstructable) {
-        return true;
-      }
-
-      return false;
-    }
-  });
   return viewports;
 }
