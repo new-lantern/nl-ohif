@@ -1,5 +1,5 @@
 import { synchronizers, SynchronizerManager, Synchronizer } from '@cornerstonejs/tools';
-
+import { getRenderingEngines } from '@cornerstonejs/core';
 import { pubSubServiceInterface, Types, ServicesManager } from '@ohif/core';
 
 const EVENTS = {
@@ -126,14 +126,17 @@ export default class SyncGroupService {
     SynchronizerManager.destroy();
   }
 
-  public getSynchronizersForViewport(
-    viewportId: string,
-    renderingEngineId: string
-  ): Synchronizer[] {
-    return SynchronizerManager.getAllSynchronizers().filter(
+  public getSynchronizersForViewport(viewportId: string): Synchronizer[] {
+    const renderingEngine =
+      getRenderingEngines().find(re => {
+        return re.getViewports().find(vp => vp.id === viewportId);
+      }) || getRenderingEngines()[0];
+
+    const synchronizers = SynchronizerManager.getAllSynchronizers();
+    return synchronizers.filter(
       s =>
-        s.hasSourceViewport(renderingEngineId, viewportId) ||
-        s.hasTargetViewport(renderingEngineId, viewportId)
+        s.hasSourceViewport(renderingEngine.id, viewportId) ||
+        s.hasTargetViewport(renderingEngine.id, viewportId)
     );
   }
 
