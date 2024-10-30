@@ -4,6 +4,7 @@ import { pubSubServiceInterface, Types, ServicesManager } from '@ohif/core';
 
 const EVENTS = {
   TOOL_GROUP_CREATED: 'event::cornerstone::syncgroupservice:toolgroupcreated',
+  VIEWPORT_REMOVED: 'event::cornerstone::syncgroupservice:viewportremoved',
 };
 
 /**
@@ -165,5 +166,7 @@ export default class SyncGroupService {
         SynchronizerManager.destroySynchronizer(synchronizer.id);
       }
     });
+
+    this._broadcastEvent(EVENTS.VIEWPORT_REMOVED, { viewportId, syncGroupId, renderingEngineId });
   }
 }

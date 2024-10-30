@@ -1,19 +1,31 @@
 const IMAGE_SLICE_SYNC_NAME = 'IMAGE_SLICE_SYNC';
 
 export default function toggleImageSliceSync({
-  toggledState,
   servicesManager,
   viewports: providedViewports,
+  syncId,
 }) {
-  if (!toggledState) {
-    return disableSync(IMAGE_SLICE_SYNC_NAME, servicesManager);
-  }
-
   const { syncGroupService, viewportGridService, displaySetService, cornerstoneViewportService } =
     servicesManager.services;
 
+  syncId ||= IMAGE_SLICE_SYNC_NAME;
+
   const viewports =
     providedViewports || getReconstructableStackViewports(viewportGridService, displaySetService);
+
+  const someViewportHasSync = viewports.some(viewport => {
+    const syncStates = syncGroupService.getSynchronizersForViewport(
+      viewport.viewportOptions.viewportId
+    );
+
+    const imageSync = syncStates.find(syncState => syncState.id === syncId);
+
+    return !!imageSync;
+  });
+
+  if (someViewportHasSync) {
+    return disableSync(syncId, servicesManager);
+  }
 
   // create synchronization group and add the viewports to it.
   viewports.forEach(gridViewport => {
@@ -53,7 +65,7 @@ function disableSync(syncName, servicesManager) {
  * Gets the consistent spacing stack viewport types, which are the ones which
  * can be navigated using the stack image sync right now.
  */
-function getReconstructableStackViewports(viewportGridService, displaySetService) {
+export function getReconstructableStackViewports(viewportGridService, displaySetService) {
   let { viewports } = viewportGridService.getState();
 
   viewports = [...viewports.values()];
