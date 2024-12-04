@@ -45,4 +45,4 @@ platform/app/.recipes/OpenResty-Orthanc/logs/*
 .vercel
 
 .vs
-.nx
+.nx/
