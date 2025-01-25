@@ -332,6 +332,16 @@ function commandsModule({
       }
 
       const activeToolName = toolGroup.getActivePrimaryMouseButtonTool();
+      const bindings = [
+        {
+          mouseButton: Enums.MouseBindings.Primary,
+        },
+        // We add the command key binding so that the tool works while holding the record button on powermic
+        {
+          mouseButton: Enums.MouseBindings.Primary,
+          modifierKey: 91, // Command key on Macs
+        },
+      ];
 
       if (activeToolName) {
         // Todo: this is a hack to prevent the crosshairs to stick around
@@ -339,8 +349,8 @@ function commandsModule({
         if (activeToolName === 'Crosshairs') {
           toolGroup.setToolDisabled(activeToolName);
         } else {
-          // We remove all bindings so that bindings from this tool don't override the bindings of the new tool
-          toolGroup.setToolPassive(activeToolName, { removeAllBindings: true });
+          // We remove prev bindings so that bindings from this tool don't override the bindings of the new tool
+          toolGroup.setToolPassive(activeToolName, { removeAllBindings: bindings });
         }
       }
 
@@ -352,18 +362,7 @@ function commandsModule({
       }
 
       // Set the new toolName to be active
-      toolGroup.setToolActive(toolName, {
-        bindings: [
-          {
-            mouseButton: Enums.MouseBindings.Primary,
-          },
-          // We add the command key binding so that the tool works while holding the record button on powermic
-          {
-            mouseButton: Enums.MouseBindings.Primary,
-            modifierKey: 91, // Command key on Macs
-          },
-        ],
-      });
+      toolGroup.setToolActive(toolName, { bindings });
     },
     showDownloadViewportModal: () => {
       const { activeViewportId } = viewportGridService.getState();
